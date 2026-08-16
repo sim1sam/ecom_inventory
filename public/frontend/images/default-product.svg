@@ -1,0 +1,10 @@
+<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="300" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
+  <g transform="translate(150,150)">
+    <!-- Shopping bag icon -->
+    <path d="M-30,-20 L30,-20 L25,30 L-25,30 Z" fill="#6c757d" opacity="0.3"/>
+    <path d="M-20,-30 Q-20,-40 -10,-40 L10,-40 Q20,-40 20,-30" fill="none" stroke="#6c757d" stroke-width="3" opacity="0.5"/>
+    <!-- Text -->
+    <text x="0" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#6c757d">No Image</text>
+  </g>
+</svg>
