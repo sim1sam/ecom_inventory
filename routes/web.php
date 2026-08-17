@@ -66,6 +66,8 @@ use App\Http\Controllers\WEB\Admin\SupplierController;
 use App\Http\Controllers\WEB\Admin\PurchaseOrderController;
 use App\Http\Controllers\WEB\Admin\PurchaseReceiptController;
 use App\Http\Controllers\WEB\Admin\PurchaseReturnController;
+use App\Http\Controllers\WEB\Admin\ExpenseController;
+use App\Http\Controllers\WEB\Admin\ExpenseCategoryController;
 use App\Http\Controllers\WEB\Admin\NotificationController;
 use App\Http\Controllers\WEB\Admin\PosController;
 
@@ -926,6 +928,18 @@ Route::group(['as'=> 'admin.', 'prefix' => 'admin'],function (){
     Route::get('purchase-receipt/create', [PurchaseReceiptController::class, 'create'])->name('purchase-receipt.create');
     Route::post('purchase-receipt', [PurchaseReceiptController::class, 'store'])->name('purchase-receipt.store');
     Route::get('purchase-receipt/{id}', [PurchaseReceiptController::class, 'show'])->name('purchase-receipt.show');
+
+    Route::get('expense', [ExpenseController::class, 'index'])->name('expense.index');
+    Route::get('expense/create', [ExpenseController::class, 'create'])->name('expense.create');
+    Route::post('expense', [ExpenseController::class, 'store'])->name('expense.store');
+    Route::get('expense/{id}/edit', [ExpenseController::class, 'edit'])->name('expense.edit');
+    Route::put('expense/{id}', [ExpenseController::class, 'update'])->name('expense.update');
+    Route::delete('expense/{id}', [ExpenseController::class, 'destroy'])->name('expense.destroy');
+
+    Route::get('expense-category', [ExpenseCategoryController::class, 'index'])->name('expense-category.index');
+    Route::post('expense-category', [ExpenseCategoryController::class, 'store'])->name('expense-category.store');
+    Route::put('expense-category/{id}', [ExpenseCategoryController::class, 'update'])->name('expense-category.update');
+    Route::delete('expense-category/{id}', [ExpenseCategoryController::class, 'destroy'])->name('expense-category.destroy');
 
     Route::get('purchase-return', [PurchaseReturnController::class, 'index'])->name('purchase-return.index');
     Route::get('purchase-return/create', [PurchaseReturnController::class, 'create'])->name('purchase-return.create');

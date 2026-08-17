@@ -171,6 +171,17 @@
                 <li class="{{ Route::is('admin.inventory.barcode*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory.barcode') }}">{{__('admin.Barcode Generator')}}</a></li>
             </ul>
           </li>
+          <li class="nav-item dropdown {{ Route::is('admin.expense*') || Route::is('admin.expense-category*') ? 'active' : '' }}">
+            <a href="#" class="nav-link has-dropdown">
+            <div class="icon"><i class="fas fa-wallet"></i></div>
+            <span>{{__('admin.Expense')}}</span></a>
+            <ul class="dropdown-menu">
+                <li class="{{ Route::is('admin.expense.index') || Route::is('admin.expense.edit') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.expense.index') }}">{{__('admin.Expense List')}}</a></li>
+                <li class="{{ Route::is('admin.expense.create') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.expense.create') }}">{{__('admin.Create Expense')}}</a></li>
+                <li class="{{ Route::is('admin.expense-category*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.expense-category.index') }}">{{__('admin.Expense Categories')}}</a></li>
+            </ul>
+          </li>
+
           <li class="nav-item dropdown {{ Route::is('admin.pos.index') || Route::is('admin.pos.bulk.order') ? 'active' : '' }}">
             <a href="#" class="nav-link has-dropdown">
             <div class="icon">
