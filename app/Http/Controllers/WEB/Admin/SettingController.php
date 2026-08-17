@@ -32,6 +32,7 @@ use App\Models\GoogleRecaptcha;
 use App\Models\FacebookComment;
 use App\Models\TawkChat;
 use App\Models\GoogleAnalytic;
+use App\Models\GoogleTagManager;
 use App\Models\CustomPagination;
 use App\Models\SocialLoginInformation;
 use App\Models\FacebookPixel;
@@ -100,13 +101,14 @@ class SettingController extends Controller
         $facebookComment = FacebookComment::first();
         $tawkChat = TawkChat::first();
         $googleAnalytic = GoogleAnalytic::first();
+        $googleTagManager = GoogleTagManager::first();
         $customPaginations = CustomPagination::all();
         $socialLogin = SocialLoginInformation::first();
         $facebookPixel = FacebookPixel::first();
         $pusher = PusherCredentail::first();
         $currencies = Currency::orderBy('name','asc')->get();
 
-        return view('admin.setting',compact('setting','cookieConsent','googleRecaptcha','facebookComment','tawkChat','googleAnalytic','customPaginations','socialLogin','facebookPixel','currencies','pusher'));
+        return view('admin.setting',compact('setting','cookieConsent','googleRecaptcha','facebookComment','tawkChat','googleAnalytic','googleTagManager','customPaginations','socialLogin','facebookPixel','currencies','pusher'));
     }
 
     public function updateThemeColor(Request $request){
@@ -291,6 +293,28 @@ class SettingController extends Controller
 
         $notification = trans('admin_validation.Update Successfully');
         $notification = array('messege'=>$notification,'alert-type'=>'success');
+        return redirect()->back()->with($notification);
+    }
+
+    public function updateGoogleTagManager(Request $request)
+    {
+        $rules = [
+            'allow' => 'required',
+            'container_id' => $request->allow == 1 ? 'required' : '',
+        ];
+        $customMessages = [
+            'allow.required' => trans('admin_validation.Allow is required'),
+            'container_id.required' => trans('admin_validation.GTM container id is required'),
+        ];
+        $this->validate($request, $rules, $customMessages);
+
+        $gtm = GoogleTagManager::first() ?: new GoogleTagManager();
+        $gtm->status = $request->allow;
+        $gtm->container_id = GoogleTagManager::normalizeContainerId($request->container_id);
+        $gtm->save();
+
+        $notification = trans('admin_validation.Update Successfully');
+        $notification = array('messege' => $notification, 'alert-type' => 'success');
         return redirect()->back()->with($notification);
     }
 

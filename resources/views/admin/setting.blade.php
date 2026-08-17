@@ -57,6 +57,10 @@
                                         </li>
 
                                         <li class="nav-item border rounded mb-1">
+                                            <a class="nav-link" id="gtm-tab" data-toggle="tab" href="#gtmTab" role="tab" aria-controls="gtmTab" aria-selected="true">{{__('admin.Google Tag Manager')}}</a>
+                                        </li>
+
+                                        <li class="nav-item border rounded mb-1">
                                             <a class="nav-link" id="custom-pagination-tab" data-toggle="tab" href="#customPaginationTab" role="tab" aria-controls="customPaginationTab" aria-selected="true">{{__('admin.Custom Pagination')}}</a>
                                         </li>
 
@@ -810,6 +814,30 @@
                                                                 <input type="text" class="form-control" name="analytic_id" value="{{ $googleAnalytic->analytic_id }}">
                                                             </div>
 
+                                                            <button class="btn btn-primary">{{__('admin.Update')}}</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane fade" id="gtmTab" role="tabpanel" aria-labelledby="gtm-tab">
+                                                <div class="card m-0">
+                                                    <div class="card-body">
+                                                        <form action="{{ route('admin.update-google-tag-manager') }}" method="POST">
+                                                            @csrf
+                                                            @method('PUT')
+                                                            <div class="form-group">
+                                                                <label>{{__('admin.Allow Google Tag Manager')}}</label>
+                                                                <select name="allow" class="form-control">
+                                                                    <option {{ ($googleTagManager->status ?? 0) == 1 ? 'selected' : '' }} value="1">{{__('admin.Enable')}}</option>
+                                                                    <option {{ ($googleTagManager->status ?? 0) == 0 ? 'selected' : '' }} value="0">{{__('admin.Disable')}}</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label>{{__('admin.GTM Container ID')}}</label>
+                                                                <input type="text" class="form-control" name="container_id" value="{{ $googleTagManager->container_id ?? '' }}" placeholder="GTM-XXXXXXX">
+                                                                <small class="text-muted">{{__('admin.Paste your GTM container ID. Script is added to the website automatically')}}</small>
+                                                            </div>
                                                             <button class="btn btn-primary">{{__('admin.Update')}}</button>
                                                         </form>
                                                     </div>

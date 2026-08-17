@@ -172,6 +172,7 @@
   'Widget Id is required' => 'Widget Id is required',
   'Property Id is required' => 'Property Id is required',
   'Analytic id is required' => 'Analytic id is required',
+  'GTM container id is required' => 'GTM container ID is required',
   'Site key is required' => 'Site key is required',
   'Facebook app id is required' => 'Facebook app id is required',
   'Facebook app secret is required' => 'Facebook app secret is required',

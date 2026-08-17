@@ -56,6 +56,7 @@ use App\Models\AnnouncementModal;
 use App\Models\MegaMenuCategory;
 use App\Models\MenuVisibility;
 use App\Models\GoogleAnalytic;
+use App\Models\GoogleTagManager;
 use App\Models\FacebookPixel;
 use App\Models\TawkChat;
 use App\Models\CookieConsent;
@@ -87,6 +88,8 @@ class HomeController extends Controller
         $customPages = CustomPage::where("status", 1)->get();
 
         $googleAnalytic = GoogleAnalytic::first();
+
+        $googleTagManager = GoogleTagManager::first();
 
         $facebookPixel = FacebookPixel::first();
 
@@ -174,6 +177,7 @@ class HomeController extends Controller
             "megaMenuBanner" => $megaMenuBanner,
             "customPages" => $customPages,
             "googleAnalytic" => $googleAnalytic,
+            "googleTagManager" => $googleTagManager,
             "facebookPixel" => $facebookPixel,
             "tawk_setting" => $tawk_setting,
             "maintainance_text" => $maintainance_text,
