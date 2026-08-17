@@ -25,7 +25,7 @@
           </li>
 
 
-          <li class="nav-item dropdown {{ Route::is('admin.all-order') || Route::is('admin.order-show') || Route::is('admin.pending-order') || Route::is('admin.pregress-order') || Route::is('admin.delivered-order') ||  Route::is('admin.completed-order') || Route::is('admin.declined-order') || Route::is('admin.cash-on-delivery')  ? 'active' : '' }}">
+          <li class="nav-item dropdown {{ Route::is('admin.all-order') || Route::is('admin.order-show') || Route::is('admin.pending-order') || Route::is('admin.pregress-order') || Route::is('admin.delivered-order') ||  Route::is('admin.completed-order') || Route::is('admin.declined-order') || Route::is('admin.cash-on-delivery') || Route::is('admin.order-dashboard')  ? 'active' : '' }}">
 
             <a href="#" class="nav-link has-dropdown">
 
@@ -34,6 +34,8 @@
                               </div>
            <span>{{__('admin.Orders')}}</span></a>
             <ul class="dropdown-menu">
+
+              <li class="{{ Route::is('admin.order-dashboard') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.order-dashboard') }}">{{__('admin.Order Dashboard')}}</a></li>
 
               <li class="{{ Route::is('admin.all-order') || Route::is('admin.order-show') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.all-order') }}">{{__('admin.All Orders')}}</a></li>
 

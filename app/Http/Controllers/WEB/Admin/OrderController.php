@@ -23,12 +23,32 @@ class OrderController extends Controller
         $this->middleware('auth:admin');
     }
 
+    public function dashboard(Request $request)
+    {
+        [$from, $to] = $this->orderDateRange($request);
+        $setting = Setting::first();
+        $stats = $this->orderStats($from, $to);
+        $recentOrders = Order::with('user')->latest()->limit(12)->get();
+        $topProducts = OrderProduct::query()
+            ->join('orders', 'order_products.order_id', '=', 'orders.id')
+            ->whereBetween('orders.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
+            ->where('orders.order_status', '!=', 4)
+            ->groupBy('order_products.product_id', 'order_products.product_name')
+            ->selectRaw('order_products.product_id, order_products.product_name, SUM(order_products.qty) as sold_qty, SUM(order_products.unit_price * order_products.qty) as sale_amount')
+            ->orderByDesc('sold_qty')
+            ->limit(10)
+            ->get();
+
+        return view('admin.order_dashboard', compact('from', 'to', 'setting', 'stats', 'recentOrders', 'topProducts'));
+    }
+
     public function index(){
         $orders = Order::with('user')->orderBy('id','desc')->get();
         $title = trans('admin_validation.All Orders');
         $setting = Setting::first();
+        $stats = $this->orderStats();
 
-        return view('admin.order', compact('orders','title','setting'));
+        return view('admin.order', compact('orders','title','setting','stats'));
 
     }
 
@@ -248,5 +268,41 @@ class OrderController extends Controller
         
         return redirect()->back()->with($notification);
         
-    } 
+    }
+
+    protected function orderDateRange(Request $request): array
+    {
+        $from = $request->from_date ?: now()->startOfMonth()->toDateString();
+        $to = $request->to_date ?: now()->toDateString();
+
+        return [$from, $to];
+    }
+
+    protected function orderStats(?string $from = null, ?string $to = null): array
+    {
+        $query = Order::query();
+        if ($from && $to) {
+            $query->whereBetween('created_at', [$from.' 00:00:00', $to.' 23:59:59']);
+        }
+
+        $todayQuery = Order::whereDate('created_at', now()->toDateString());
+
+        return [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->where('order_status', 0)->count(),
+            'progress' => (clone $query)->where('order_status', 1)->count(),
+            'delivered' => (clone $query)->where('order_status', 2)->count(),
+            'completed' => (clone $query)->where('order_status', 3)->count(),
+            'declined' => (clone $query)->where('order_status', 4)->count(),
+            'cod' => (clone $query)->where('cash_on_delivery', 1)->count(),
+            'unpaid' => (clone $query)->where('payment_status', 0)->where('order_status', '!=', 4)->count(),
+            'paid' => (clone $query)->where('payment_status', 1)->count(),
+            'qty' => (int) (clone $query)->where('order_status', '!=', 4)->sum('product_qty'),
+            'sales' => (float) (clone $query)->where('order_status', '!=', 4)->sum('total_amount'),
+            'unpaid_amount' => (float) (clone $query)->where('payment_status', 0)->where('order_status', '!=', 4)->sum('total_amount'),
+            'today' => (clone $todayQuery)->count(),
+            'today_pending' => (clone $todayQuery)->where('order_status', 0)->count(),
+            'today_sales' => (float) (clone $todayQuery)->where('order_status', '!=', 4)->sum('total_amount'),
+        ];
+    }
 }

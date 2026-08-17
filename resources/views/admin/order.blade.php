@@ -15,6 +15,9 @@
           </div>
 
           <div class="section-body">
+            @isset($stats)
+                @include('admin.partials.order_stats')
+            @endisset
             <div class="row mt-4">
                 <div class="col">
                   <div class="card">
@@ -38,7 +41,7 @@
                                 @foreach ($orders as $index => $order)
                                     <tr>
                                         <td>{{ ++$index }}</td>
-                                        <td>{{ $order->user->name }}</td>
+                                        <td>{{ $order->user->name ?? '-' }}</td>
                                         <td>{{ $order->order_id }}</td>
                                         <td>{{ $order->created_at->format('d F, Y') }}</td>
                                         <td>{{ $order->product_qty }}</td>

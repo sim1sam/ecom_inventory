@@ -860,6 +860,7 @@ Route::group(['as'=> 'admin.', 'prefix' => 'admin'],function (){
     Route::delete('delete-seller-withdraw/{id}', [SellerWithdrawController::class, 'destroy'])->name('delete-seller-withdraw');
     Route::put('approved-seller-withdraw/{id}', [SellerWithdrawController::class, 'approvedWithdraw'])->name('approved-seller-withdraw');
 
+    Route::get('order-dashboard', [OrderController::class, 'dashboard'])->name('order-dashboard');
     Route::get('all-order', [OrderController::class, 'index'])->name('all-order');
     Route::get('pending-order', [OrderController::class, 'pendingOrder'])->name('pending-order');
     Route::get('pregress-order', [OrderController::class, 'pregressOrder'])->name('pregress-order');

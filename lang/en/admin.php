@@ -1008,5 +1008,9 @@
   'To Date' => 'To Date',
   'Returns' => 'Returns',
   'Excel' => 'Excel',
+  'Order Dashboard' => 'Order Dashboard',
+  'Recent Orders' => 'Recent Orders',
+  'Top Selling Products' => 'Top Selling Products',
+  'Unpaid' => 'Unpaid',
 );
  ?>
