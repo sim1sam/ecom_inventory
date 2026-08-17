@@ -77,6 +77,71 @@ class Product extends Model
         return $this->belongsTo(Category::class,'category_id','id');
     }
 
+    public function warehouseStocks()
+    {
+        return $this->hasMany(WarehouseStock::class);
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+
+    public static function normalizeUnit(?string $unit): string
+    {
+        $unit = strtolower(trim((string) $unit));
+
+        if ($unit === '' || $unit === 'pc' || $unit === 'pcs') {
+            return 'pc';
+        }
+
+        return $unit;
+    }
+
+    public static function isPackUnit(?string $unit): bool
+    {
+        return self::normalizeUnit($unit) !== 'pc';
+    }
+
+    public static function convertToPcs(int $qty, ?string $unit, int $pcsPerBox = 1): int
+    {
+        $pcsPerBox = max(1, $pcsPerBox);
+
+        return self::isPackUnit($unit) ? $qty * $pcsPerBox : $qty;
+    }
+
+    public static function costPerPc(float $unitCost, ?string $unit, int $pcsPerBox = 1): float
+    {
+        $pcsPerBox = max(1, $pcsPerBox);
+
+        return self::isPackUnit($unit)
+            ? round($unitCost / $pcsPerBox, 4)
+            : $unitCost;
+    }
+
+    public function pcsPerBox(): int
+    {
+        return max(1, (int) ($this->pcs_per_box ?: 1));
+    }
+
+    public static function resolvePurchaseUnit(?string $code): string
+    {
+        $code = self::normalizeUnit($code);
+        $unit = Unit::where('code', $code)->where('status', 1)->first();
+
+        return $unit ? $unit->code : 'pc';
+    }
+
+    public function defaultPurchaseUnit(): string
+    {
+        return self::normalizeUnit($this->purchase_unit ?? 'pc');
+    }
+
+    public function packUnitName(): string
+    {
+        return Unit::label($this->defaultPurchaseUnit());
+    }
+
     protected $fillable = [
         'name',
         'short_name',
@@ -88,16 +153,22 @@ class Product extends Model
         'child_category_id',
         'brand_id',
         'qty',
+        'pcs_per_box',
+        'purchase_unit',
         'weight',
         'sold_qty',
         'short_description',
         'long_description',
         'video_link',
         'sku',
+        'barcode',
+        'low_stock_threshold',
         'seo_title',
         'seo_description',
         'price',
         'offer_price',
+        'cost_price',
+        'default_supplier_id',
         'tags',
         'show_homepage',
         'is_undefine',

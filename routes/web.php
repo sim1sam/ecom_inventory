@@ -60,6 +60,12 @@ use App\Http\Controllers\WEB\Admin\LanguageController;
 use App\Http\Controllers\WEB\Admin\AdvertisementController;
 use App\Http\Controllers\WEB\Admin\FlashSaleController;
 use App\Http\Controllers\WEB\Admin\InventoryController;
+use App\Http\Controllers\WEB\Admin\WarehouseController;
+use App\Http\Controllers\WEB\Admin\UnitController;
+use App\Http\Controllers\WEB\Admin\SupplierController;
+use App\Http\Controllers\WEB\Admin\PurchaseOrderController;
+use App\Http\Controllers\WEB\Admin\PurchaseReceiptController;
+use App\Http\Controllers\WEB\Admin\PurchaseReturnController;
 use App\Http\Controllers\WEB\Admin\NotificationController;
 use App\Http\Controllers\WEB\Admin\PosController;
 
@@ -879,10 +885,52 @@ Route::group(['as'=> 'admin.', 'prefix' => 'admin'],function (){
 
 
 
+    Route::get('inventory/dashboard', [InventoryController::class, 'dashboard'])->name('inventory.dashboard');
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory');
     Route::get('stock-history/{id}', [InventoryController::class, 'show_inventory'])->name('stock-history');
     Route::post('add-stock', [InventoryController::class, 'add_stock'])->name('add-stock');
     Route::delete('delete-stock/{id}', [InventoryController::class, 'delete_stock'])->name('delete-stock');
+    Route::get('inventory/stock-in', [InventoryController::class, 'stockInForm'])->name('inventory.stock-in');
+    Route::post('inventory/stock-in', [InventoryController::class, 'storeStockIn'])->name('inventory.stock-in.store');
+    Route::get('inventory/stock-out', [InventoryController::class, 'stockOutForm'])->name('inventory.stock-out');
+    Route::post('inventory/stock-out', [InventoryController::class, 'storeStockOut'])->name('inventory.stock-out.store');
+    Route::get('inventory/adjustment', [InventoryController::class, 'adjustmentForm'])->name('inventory.adjustment');
+    Route::post('inventory/adjustment', [InventoryController::class, 'storeAdjustment'])->name('inventory.adjustment.store');
+    Route::get('inventory/transfer', [InventoryController::class, 'transferForm'])->name('inventory.transfer');
+    Route::post('inventory/transfer', [InventoryController::class, 'storeTransfer'])->name('inventory.transfer.store');
+    Route::get('inventory/movements', [InventoryController::class, 'movements'])->name('inventory.movements');
+    Route::get('inventory/low-stock', [InventoryController::class, 'lowStock'])->name('inventory.low-stock');
+    Route::get('inventory/barcode', [InventoryController::class, 'barcodeIndex'])->name('inventory.barcode');
+    Route::post('inventory/barcode/generate', [InventoryController::class, 'generateBarcode'])->name('inventory.barcode.generate');
+    Route::post('inventory/barcode/generate-all', [InventoryController::class, 'generateAllBarcodes'])->name('inventory.barcode.generate-all');
+    Route::post('inventory/barcode/print', [InventoryController::class, 'printBarcodes'])->name('inventory.barcode.print');
+    Route::get('inventory/barcode/search', [InventoryController::class, 'searchBarcode'])->name('inventory.barcode.search');
+    Route::resource('warehouse', WarehouseController::class)->except(['show']);
+    Route::get('unit', [UnitController::class, 'index'])->name('unit.index');
+    Route::post('unit', [UnitController::class, 'store'])->name('unit.store');
+    Route::put('unit/{id}', [UnitController::class, 'update'])->name('unit.update');
+    Route::delete('unit/{id}', [UnitController::class, 'destroy'])->name('unit.destroy');
+
+    Route::get('supplier', [SupplierController::class, 'index'])->name('supplier.index');
+    Route::post('supplier', [SupplierController::class, 'store'])->name('supplier.store');
+    Route::put('supplier/{id}', [SupplierController::class, 'update'])->name('supplier.update');
+    Route::delete('supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+
+    Route::get('purchase-order', [PurchaseOrderController::class, 'index'])->name('purchase-order.index');
+    Route::get('purchase-order/create', [PurchaseOrderController::class, 'create'])->name('purchase-order.create');
+    Route::post('purchase-order', [PurchaseOrderController::class, 'store'])->name('purchase-order.store');
+    Route::get('purchase-order/{id}', [PurchaseOrderController::class, 'show'])->name('purchase-order.show');
+    Route::get('purchase-order/{id}/submit', [PurchaseOrderController::class, 'submit'])->name('purchase-order.submit');
+
+    Route::get('purchase-receipt', [PurchaseReceiptController::class, 'index'])->name('purchase-receipt.index');
+    Route::get('purchase-receipt/create', [PurchaseReceiptController::class, 'create'])->name('purchase-receipt.create');
+    Route::post('purchase-receipt', [PurchaseReceiptController::class, 'store'])->name('purchase-receipt.store');
+    Route::get('purchase-receipt/{id}', [PurchaseReceiptController::class, 'show'])->name('purchase-receipt.show');
+
+    Route::get('purchase-return', [PurchaseReturnController::class, 'index'])->name('purchase-return.index');
+    Route::get('purchase-return/create', [PurchaseReturnController::class, 'create'])->name('purchase-return.create');
+    Route::post('purchase-return', [PurchaseReturnController::class, 'store'])->name('purchase-return.store');
+    Route::get('purchase-return/{id}', [PurchaseReturnController::class, 'show'])->name('purchase-return.show');
 
     Route::get('sms-notification', [NotificationController::class, 'twilio_sms'])->name('sms-notification');
     Route::put('update-twilio-configuration', [NotificationController::class, 'update_twilio_sms'])->name('update-twilio-configuration');

@@ -102,17 +102,49 @@
                                 </div>
 
                                 <div class="form-group col-12">
+                                    <label>{{__('admin.Barcode')}} </label>
+                                   <input type="text" class="form-control" name="barcode" value="{{ $product->barcode }}">
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{__('admin.Low Stock Threshold')}} </label>
+                                   <input type="number" class="form-control" name="low_stock_threshold" value="{{ $product->low_stock_threshold ?? 5 }}" min="0">
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{__('admin.Pcs Per Pack Unit')}}</label>
+                                   <input type="number" class="form-control" name="pcs_per_box" value="{{ old('pcs_per_box', $product->pcs_per_box ?? 1) }}" min="1">
+                                   <small class="text-muted">{{__('admin.How many Pcs in 1 pack unit. Stock and sales stay in Pcs')}}</small>
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{__('admin.Default Purchase Unit')}}</label>
+                                    <select name="purchase_unit" class="form-control">
+                                        @foreach(($units ?? collect()) as $unit)
+                                        <option value="{{ $unit->code }}" {{ old('purchase_unit', $product->purchase_unit ?? 'pc') === $unit->code ? 'selected' : '' }}>{{ $unit->name }}{{ $unit->is_base ? ' ('.__('admin.Stock unit').')' : '' }}</option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted"><a href="{{ route('admin.unit.index') }}" target="_blank">{{__('admin.Create more units')}}</a></small>
+                                </div>
+
+                                <div class="form-group col-12">
                                     <label>{{__('admin.Price')}} <span class="text-danger">*</span></label>
                                    <input type="text" class="form-control" name="price" value="{{ $product->price }}">
                                 </div>
 
                                 <div class="form-group col-12">
-                                    <label>{{__('admin.Offer Price')}} </label>
+                                    <label>{{ __('admin.Offer Price')}} </label>
                                    <input type="text" class="form-control" name="offer_price" value="{{ $product->offer_price }}">
                                 </div>
 
                                 <div class="form-group col-12">
-                                    <label>{{__('admin.Weight')}} <span class="text-danger">*</span></label>
+                                    <label>{{ __('admin.Purchase Price (Per Pc)') }}</label>
+                                   <input type="number" step="0.01" class="form-control" name="cost_price" value="{{ old('cost_price', $product->cost_price > 0 ? $product->cost_price : '') }}" min="0">
+                                    <small class="text-muted">{{ __('admin.Purchase price is set on PO and saved to product when stock is received') }}</small>
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{__('admin.Weight')}}</label>
                                    <input type="text" class="form-control" name="weight" value="{{ $product->weight }}">
                                 </div>
 
@@ -179,20 +211,10 @@
                                 <div class="form-group col-12">
                                     <label>{{__('admin.Specifications')}}</label>
                                     <div>
-                                        @if ($product->is_specification==1)
-                                            <a href="javascript::void()" id="manageSpecificationBox">
-                                                <input name="is_specification" id="status_toggle" type="checkbox" checked data-toggle="toggle" data-on="Enable" data-off="Disabled" data-onstyle="success" data-offstyle="danger">
-                                            </a>
-                                        @else
-                                        <a href="javascript::void()" id="manageSpecificationBox">
-                                                <input name="is_specification" id="status_toggle" type="checkbox" data-toggle="toggle" data-on="Enable" data-off="Disabled" data-onstyle="success" data-offstyle="danger">
-                                            </a>
-                                        @endif
-
+                                        <input name="is_specification" id="status_toggle" type="checkbox" {{ $product->is_specification == 1 ? 'checked' : '' }} data-toggle="toggle" data-on="Enable" data-off="Disabled" data-onstyle="success" data-offstyle="danger">
                                     </div>
                                 </div>
-                                @if ($product->is_specification==1)
-                                    <div class="form-group col-12" id="specification-box">
+                                <div class="form-group col-12 {{ $product->is_specification == 1 ? '' : 'd-none' }}" id="specification-box">
                                         @if ($productSpecifications->count() != 0)
                                             @foreach ($productSpecifications as $productSpecification)
                                                 <div class="row mt-2" id="existSpecificationBox-{{ $productSpecification->id }}">
@@ -234,55 +256,6 @@
                                         </div>
 
                                     </div>
-                                @endif
-
-                                @if ($product->is_specification==0)
-                                    <div class="form-group col-12 d-none" id="specification-box">
-                                        @if ($productSpecifications->count() != 0)
-                                            @foreach ($productSpecifications as $productSpecification)
-                                                <div class="row mt-2" id="existSpecificationBox-{{ $productSpecification->id }}">
-                                                    <div class="col-md-5">
-                                                        <label>{{__('admin.Key')}} <span class="text-danger">*</span></label>
-                                                        <select name="keys[]" class="form-control">
-                                                            @foreach ($specificationKeys as $specificationKey)
-                                                                <option {{ $specificationKey->id == $productSpecification->product_specification_key_id ? 'selected' : '' }} value="{{ $specificationKey->id }}">{{ $specificationKey->key }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-md-5">
-                                                        <label>{{__('admin.Specification')}} <span class="text-danger">*</span></label>
-                                                        <input type="text" class="form-control" name="specifications[]" value="{{ $productSpecification->specification }}">
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <button type="button" class="btn btn-danger plus_btn removeExistSpecificationRow"  data-specificationiId="{{ $productSpecification->id }}"><i class="fas fa-trash"></i></button>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        @endif
-
-                                        <div class="row mt-2">
-                                            <div class="col-md-5">
-                                                <label>{{__('admin.Key')}} <span class="text-danger">*</span></label>
-                                                <select name="keys[]" class="form-control">
-                                                    @foreach ($specificationKeys as $specificationKey)
-                                                        <option value="{{ $specificationKey->id }}">{{ $specificationKey->key }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <div class="col-md-5">
-                                                <label>{{__('admin.Specification')}} <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" name="specifications[]">
-                                            </div>
-                                            <div class="col-md-2">
-                                                <button type="button" class="btn btn-success plus_btn" id="addNewSpecificationRow"><i class="fas fa-plus"></i></button>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                @endif
-
-
-
 
                                 <div id="hidden-specification-box" class="d-none">
                                     <div class="delete-specification-row">
@@ -323,7 +296,19 @@
 <script>
     (function($) {
         "use strict";
-        var specification = '{{ $product->is_specification == 1 ? true : false }}';
+        var specification = {{ $product->is_specification == 1 ? 'true' : 'false' }};
+
+        function syncSpecificationState(enabled) {
+            specification = !!enabled;
+            if (specification) {
+                $("#specification-box").removeClass('d-none');
+                $("#specification-box").find('input, select, button').prop('disabled', false);
+            } else {
+                $("#specification-box").addClass('d-none');
+                $("#specification-box").find('input, select, button').prop('disabled', true);
+            }
+        }
+
         $(document).ready(function () {
             $("#name").on("focusout",function(e){
                 $("#slug").val(convertToSlug($(this).val()));
@@ -388,6 +373,9 @@
             })
 
             $("#addNewSpecificationRow").on('click',function(){
+                if (!specification) {
+                    return;
+                }
                 var html = $("#hidden-specification-box").html();
                 $("#specification-box").append(html);
             })
@@ -396,18 +384,11 @@
                 $(this).closest('.delete-specification-row').remove();
             });
 
+            $("#status_toggle").on('change', function () {
+                syncSpecificationState($(this).is(':checked'));
+            });
 
-            $("#manageSpecificationBox").on("click",function(){
-                if(specification){
-                    specification = false;
-                    $("#specification-box").addClass('d-none');
-                }else{
-                    specification = true;
-                    $("#specification-box").removeClass('d-none');
-                }
-
-
-            })
+            syncSpecificationState($("#status_toggle").is(':checked'));
 
             $(".removeExistSpecificationRow").on("click",function(){
                 var isDemo = "{{ env('APP_MODE') }}"

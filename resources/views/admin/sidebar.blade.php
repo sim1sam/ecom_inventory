@@ -107,7 +107,7 @@
 
 
 
-          <li class="nav-item dropdown {{ Route::is('admin.product.*') || Route::is('admin.product-brand.*') || Route::is('admin.product-variant') || Route::is('admin.create-product-variant') || Route::is('admin.edit-product-variant') || Route::is('admin.product-gallery') || Route::is('admin.product-variant-item') || Route::is('admin.create-product-variant-item') || Route::is('admin.edit-product-variant-item') || Route::is('admin.product-review') || Route::is('admin.show-product-review') || Route::is('admin.seller-product') || Route::is('admin.seller-pending-product') || Route::is('admin.wholesale') || Route::is('admin.create-wholesale') || Route::is('admin.edit-wholesale') || Route::is('admin.product-highlight') ||  Route::is('admin.product-report') || Route::is('admin.show-product-report') || Route::is('admin.specification-key.*') || Route::is('admin.stockout-product') || Route::is('admin.product-import') ? 'active' : '' }}">
+          <li class="nav-item dropdown {{ Route::is('admin.product.*') || Route::is('admin.product-brand.*') || Route::is('admin.product-variant') || Route::is('admin.create-product-variant') || Route::is('admin.edit-product-variant') || Route::is('admin.product-gallery') || Route::is('admin.product-variant-item') || Route::is('admin.create-product-variant-item') || Route::is('admin.edit-product-variant-item') || Route::is('admin.product-review') || Route::is('admin.show-product-review') || Route::is('admin.seller-product') || Route::is('admin.seller-pending-product') || Route::is('admin.wholesale') || Route::is('admin.create-wholesale') || Route::is('admin.edit-wholesale') || Route::is('admin.product-highlight') ||  Route::is('admin.product-report') || Route::is('admin.show-product-report') || Route::is('admin.specification-key.*') || Route::is('admin.product-import') ? 'active' : '' }}">
             <a href="#" class="nav-link has-dropdown">
             <div class="icon">
             <i class="fas fa-th-large"></i>
@@ -125,8 +125,6 @@
 
             <li class="{{ Route::is('admin.product.*') || Route::is('admin.product-variant') || Route::is('admin.create-product-variant') || Route::is('admin.edit-product-variant') || Route::is('admin.product-gallery') || Route::is('admin.product-variant-item') || Route::is('admin.create-product-variant-item') || Route::is('admin.edit-product-variant-item') || Route::is('admin.wholesale') || Route::is('admin.create-wholesale') || Route::is('admin.edit-wholesale') || Route::is('admin.product-highlight') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.product.index') }}">{{__('admin.Products')}}</a></li>
 
-            <li class="{{ Route::is('admin.stockout-product') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.stockout-product') }}">{{__('admin.Stock out')}}</a></li>
-
             <li class="{{ Route::is('admin.seller-product') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.seller-product') }}">{{__('admin.Seller Products')}}</a></li>
 
             <li class="{{ Route::is('admin.seller-pending-product') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.seller-pending-product') }}">{{__('admin.Seller Pending Products')}}</a></li>
@@ -140,12 +138,38 @@
 
           </li>
 
-          <li class="{{ Route::is('admin.inventory') || Route::is('admin.stock-history') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory') }}">
-            <div class="icon">
-                <i class="fas fa-th-large"></i>
+          <li class="nav-item dropdown {{ Route::is('admin.purchase*') || Route::is('admin.supplier*') ? 'active' : '' }}">
+            <a href="#" class="nav-link has-dropdown">
+            <div class="icon"><i class="fas fa-shopping-basket"></i></div>
+            <span>{{__('admin.Purchase')}}</span></a>
+            <ul class="dropdown-menu">
+                <li class="{{ Route::is('admin.supplier*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.supplier.index') }}">{{__('admin.Suppliers')}}</a></li>
+                <li class="{{ Route::is('admin.purchase-order*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.purchase-order.index') }}">{{__('admin.Purchase Orders')}}</a></li>
+                <li class="{{ Route::is('admin.purchase-receipt*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.purchase-receipt.index') }}">{{__('admin.Purchase Received')}}</a></li>
+                <li class="{{ Route::is('admin.purchase-return*') && request('reason') !== 'damage' ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.purchase-return.index') }}">{{__('admin.Return To Vendor')}}</a></li>
+                <li class="{{ request('reason') === 'damage' ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.purchase-return.create', ['reason' => 'damage']) }}">{{__('admin.Damage Product Return')}}</a></li>
+            </ul>
+          </li>
 
+          <li class="nav-item dropdown {{ Route::is('admin.inventory*') || Route::is('admin.stock-history') || Route::is('admin.warehouse.*') || Route::is('admin.unit.*') || Route::is('admin.stockout-product') ? 'active' : '' }}">
+            <a href="#" class="nav-link has-dropdown">
+            <div class="icon">
+                <i class="fas fa-warehouse"></i>
             </div>
             <span>{{__('admin.Inventory')}}</span></a>
+            <ul class="dropdown-menu">
+                <li class="{{ Route::is('admin.inventory.dashboard') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory.dashboard') }}">{{__('admin.Inventory Dashboard')}}</a></li>
+                <li class="{{ Route::is('admin.inventory') || Route::is('admin.stock-history') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory') }}">{{__('admin.Products Inventory')}}</a></li>
+                <li class="{{ Route::is('admin.inventory.stock-in*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory.stock-in') }}">{{__('admin.Stock In')}}</a></li>
+                <li class="{{ Route::is('admin.inventory.stock-out*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory.stock-out') }}">{{__('admin.Stock Out')}}</a></li>
+                <li class="{{ Route::is('admin.inventory.adjustment*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory.adjustment') }}">{{__('admin.Stock Adjustment')}}</a></li>
+                <li class="{{ Route::is('admin.inventory.transfer*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory.transfer') }}">{{__('admin.Stock Transfer')}}</a></li>
+                <li class="{{ Route::is('admin.inventory.movements') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory.movements') }}">{{__('admin.Stock Movements')}}</a></li>
+                <li class="{{ Route::is('admin.warehouse.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.warehouse.index') }}">{{__('admin.Warehouses')}}</a></li>
+                <li class="{{ Route::is('admin.unit.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.unit.index') }}">{{__('admin.Units')}}</a></li>
+                <li class="{{ Route::is('admin.inventory.low-stock') || Route::is('admin.stockout-product') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory.low-stock') }}">{{__('admin.Low Stock Alerts')}}</a></li>
+                <li class="{{ Route::is('admin.inventory.barcode*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.inventory.barcode') }}">{{__('admin.Barcode Generator')}}</a></li>
+            </ul>
           </li>
           <li class="nav-item dropdown {{ Route::is('admin.pos.index') || Route::is('admin.pos.bulk.order') ? 'active' : '' }}">
             <a href="#" class="nav-link has-dropdown">

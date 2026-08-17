@@ -23,6 +23,7 @@ use App\Models\FlashSaleProduct;
 use App\Models\ShoppingCart;
 use App\Models\ShoppingCartVariant;
 use App\Models\CompareProduct;
+use App\Models\Unit;
 use Intervention\Image\Laravel\Facades\Image;
 use File;
 use Str;
@@ -87,8 +88,11 @@ class ProductController extends Controller
         $categories = Category::all();
         $brands = Brand::all();
         $specificationKeys = ProductSpecificationKey::all();
+        $warehouses = \App\Models\Warehouse::where('status', 1)->get();
+        $suppliers = \App\Models\Supplier::where('status', 1)->orderBy('name')->get();
+        $units = \App\Models\Unit::activeUnits();
 
-        return view('admin.create_product',compact('categories','brands','specificationKeys'));
+        return view('admin.create_product',compact('categories','brands','specificationKeys','warehouses','suppliers','units'));
     }
 
     public function store(Request $request)
@@ -103,8 +107,8 @@ class ProductController extends Controller
             'long_description' => 'required',
             'price' => 'required|numeric',
             'status' => 'required',
-            'weight' => 'required|numeric',
-            'quantity' => 'required|numeric',
+            'weight' => 'nullable|numeric',
+            'opening_stock' => 'nullable|numeric|min:0',
         ];
         $customMessages = [
             'short_name.required' => trans('admin_validation.Short name is required'),
@@ -119,10 +123,16 @@ class ProductController extends Controller
             'long_description.required' => trans('admin_validation.Long description is required'),
             'price.required' => trans('admin_validation.Price is required'),
             'status.required' => trans('admin_validation.Status is required'),
-            'quantity.required' => trans('admin_validation.Quantity is required'),
-            'weight.required' => trans('admin_validation.Weight is required'),
         ];
-        $this->validate($request, $rules,$customMessages);
+        $this->validate($request, $rules, $customMessages);
+
+        $openingQty = (int) ($request->opening_stock ?? 0);
+        if ($openingQty > 0 && (! $request->filled('cost_price') || (float) $request->cost_price <= 0)) {
+            return redirect()->back()->withInput()->with([
+                'messege' => trans('admin.Purchase price is required when opening stock is added'),
+                'alert-type' => 'error',
+            ]);
+        }
 
         $product = new Product();
         if($request->thumb_image){
@@ -142,13 +152,21 @@ class ProductController extends Controller
         $product->child_category_id = $request->child_category ? $request->child_category : 0;
         $product->brand_id = $request->brand ? $request->brand : 0;
         $product->sku = $request->sku;
+        $product->barcode = $request->barcode;
+        $product->low_stock_threshold = $request->low_stock_threshold ?? 5;
         $product->price = $request->price;
         $product->offer_price = $request->offer_price;
-        $product->qty = $request->quantity ? $request->quantity : 0;
+        $product->cost_price = ($request->filled('cost_price') && (float) $request->cost_price > 0)
+            ? (float) $request->cost_price
+            : 0;
+        $product->default_supplier_id = $request->default_supplier_id;
+        $product->qty = 0;
+        $product->pcs_per_box = max(1, (int) ($request->pcs_per_box ?? 1));
+        $product->purchase_unit = Product::resolvePurchaseUnit($request->purchase_unit);
         $product->short_description = $request->short_description;
         $product->long_description = $request->long_description;
         $product->status = $request->status;
-        $product->weight = $request->weight;
+        $product->weight = $request->weight ?? 0;
         $product->tags = $request->tags;
         $product->is_undefine = 1;
         $product->is_specification = $request->is_specification ? 1 : 0;
@@ -160,6 +178,23 @@ class ProductController extends Controller
         $product->is_featured = $request->is_featured ? 1 : 0;
         $product->approve_by_admin = 1;
         $product->save();
+
+        if (empty($product->barcode)) {
+            $product->barcode = 'P'.str_pad((string) $product->id, 10, '0', STR_PAD_LEFT);
+            $product->save();
+        }
+
+        $stockService = app(\App\Services\StockService::class);
+        $warehouseId = $request->opening_warehouse_id ?: $stockService->getDefaultWarehouse()->id;
+        $openingQty = (int) ($request->opening_stock ?? 0);
+        $openingCost = ($request->filled('cost_price') && (float) $request->cost_price > 0)
+            ? (float) $request->cost_price
+            : null;
+        if ($openingQty > 0) {
+            $stockService->openingStock($product->id, $warehouseId, $openingQty, $openingCost, auth('admin')->id());
+        } else {
+            $stockService->ensureWarehouseStock($product->id, $warehouseId);
+        }
 
         if($request->is_specification){
             $exist_specifications=[];
@@ -206,8 +241,9 @@ class ProductController extends Controller
         $brands = Brand::all();
         $specificationKeys = ProductSpecificationKey::all();
         $productSpecifications = ProductSpecification::where('product_id',$product->id)->get();
+        $units = \App\Models\Unit::activeUnits();
 
-        return view('admin.edit_product',compact('categories','brands','specificationKeys','product','subCategories','childCategories','productSpecifications'));
+        return view('admin.edit_product',compact('categories','brands','specificationKeys','product','subCategories','childCategories','productSpecifications','units'));
 
     }
 
@@ -225,7 +261,7 @@ class ProductController extends Controller
             'long_description' => 'required',
             'price' => 'required|numeric',
             'status' => 'required',
-            'weight' => 'required',
+            'weight' => 'nullable|numeric',
         ];
         $customMessages = [
             'short_name.required' => trans('admin_validation.Short name is required'),
@@ -243,7 +279,6 @@ class ProductController extends Controller
             'price.required' => trans('admin_validation.Price is required'),
             'quantity.required' => trans('admin_validation.Quantity is required'),
             'status.required' => trans('admin_validation.Status is required'),
-            'weight.required' => trans('admin_validation.Weight is required'),
         ];
         $this->validate($request, $rules,$customMessages);
 
@@ -271,13 +306,20 @@ class ProductController extends Controller
         $product->brand_id = $request->brand ? $request->brand : 0;
         $product->sold_qty = 0;
         $product->sku = $request->sku;
+        $product->barcode = $request->barcode;
+        $product->low_stock_threshold = $request->low_stock_threshold ?? 5;
+        $product->pcs_per_box = max(1, (int) ($request->pcs_per_box ?? 1));
+        $product->purchase_unit = Product::resolvePurchaseUnit($request->purchase_unit);
         $product->price = $request->price;
         $product->offer_price = $request->offer_price;
+        if ($request->filled('cost_price') && (float) $request->cost_price > 0) {
+            $product->cost_price = (float) $request->cost_price;
+        }
         $product->short_description = $request->short_description;
         $product->long_description = $request->long_description;
         $product->tags = $request->tags;
         $product->status = $request->status;
-        $product->weight = $request->weight;
+        $product->weight = $request->weight ?? 0;
         $product->is_specification = $request->is_specification ? 1 : 0;
         $product->seo_title = $request->seo_title ? $request->seo_title : $request->name;
         $product->seo_description = $request->seo_description ? $request->seo_description : $request->name;
@@ -291,7 +333,7 @@ class ProductController extends Controller
         $product->save();
 
         $exist_specifications=[];
-        if($request->keys){
+        if($request->is_specification && $request->keys){
             foreach($request->keys as $index => $key){
                 if($key){
                     if($request->specifications[$index]){

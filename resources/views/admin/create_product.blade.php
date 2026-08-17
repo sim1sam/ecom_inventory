@@ -91,6 +91,32 @@
                                 </div>
 
                                 <div class="form-group col-12">
+                                    <label>{{__('admin.Barcode')}} </label>
+                                   <input type="text" class="form-control" name="barcode" placeholder="{{__('admin.Auto generated if empty')}}">
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{__('admin.Low Stock Threshold')}} </label>
+                                   <input type="number" class="form-control" name="low_stock_threshold" value="5" min="0">
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{__('admin.Pcs Per Pack Unit')}}</label>
+                                   <input type="number" class="form-control" name="pcs_per_box" value="{{ old('pcs_per_box', 1) }}" min="1">
+                                   <small class="text-muted">{{__('admin.How many Pcs in 1 pack unit. Stock and sales stay in Pcs')}}</small>
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{__('admin.Default Purchase Unit')}}</label>
+                                    <select name="purchase_unit" class="form-control">
+                                        @foreach(($units ?? collect()) as $unit)
+                                        <option value="{{ $unit->code }}" {{ old('purchase_unit', 'pc') === $unit->code ? 'selected' : '' }}>{{ $unit->name }}{{ $unit->is_base ? ' ('.__('admin.Stock unit').')' : '' }}</option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted"><a href="{{ route('admin.unit.index') }}" target="_blank">{{__('admin.Create more units')}}</a></small>
+                                </div>
+
+                                <div class="form-group col-12">
                                     <label>{{__('admin.Price')}} <span class="text-danger">*</span></label>
                                    <input type="text" class="form-control" name="price" value="{{ old('price') }}">
                                 </div>
@@ -103,12 +129,37 @@
 
 
                                 <div class="form-group col-12">
-                                    <label>{{__('admin.Stock Quantity')}} <span class="text-danger">*</span></label>
-                                   <input type="number" class="form-control" name="quantity" value="{{ old('quantity') }}">
+                                    <label>{{__('admin.Opening Stock (Pcs)')}}</label>
+                                   <input type="number" class="form-control" name="opening_stock" id="openingStockInput" value="{{ old('opening_stock', 0) }}" min="0">
                                 </div>
 
                                 <div class="form-group col-12">
-                                    <label>{{__('admin.Weight')}} <span class="text-danger">*</span></label>
+                                    <label>{{__('admin.Opening Warehouse')}}</label>
+                                    <select name="opening_warehouse_id" class="form-control">
+                                        @foreach($warehouses as $warehouse)
+                                        <option value="{{ $warehouse->id }}" {{ $warehouse->is_default ? 'selected' : '' }}>{{ $warehouse->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{ __('admin.Purchase Price (Optional)') }} <span class="text-muted" id="openingPriceHint">({{ __('admin.Required if opening stock is added') }})</span></label>
+                                   <input type="number" step="0.01" class="form-control" name="cost_price" id="costPriceInput" value="{{ old('cost_price') }}" min="0" placeholder="{{ __('admin.Leave empty if no opening stock') }}">
+                                    <small class="text-muted">{{ __('admin.Purchase price optional on PO too. Set here for opening stock, or on PO when receiving stock') }}</small>
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{__('admin.Default Supplier')}}</label>
+                                    <select name="default_supplier_id" class="form-control select2">
+                                        <option value="">{{__('admin.Select Supplier')}}</option>
+                                        @foreach($suppliers as $supplier)
+                                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-12">
+                                    <label>{{__('admin.Weight')}}</label>
                                    <input type="text" class="form-control" name="weight" value="{{ old('weight') }}">
                                 </div>
 
@@ -166,13 +217,11 @@
                                 <div class="form-group col-12">
                                     <label>{{__('admin.Specifications')}}</label>
                                     <div>
-                                        <a href="javascript::void()" id="manageSpecificationBox">
-                                            <input name="is_specification" id="status_toggle" type="checkbox" checked data-toggle="toggle" data-on="Enable" data-off="Disabled" data-onstyle="success" data-offstyle="danger">
-                                        </a>
+                                        <input name="is_specification" id="status_toggle" type="checkbox" data-toggle="toggle" data-on="Enable" data-off="Disabled" data-onstyle="success" data-offstyle="danger">
                                     </div>
                                 </div>
 
-                                <div class="form-group col-12" id="specification-box">
+                                <div class="form-group col-12 d-none" id="specification-box">
                                     <div class="row">
                                         <div class="col-md-5">
                                             <label>{{__('admin.Key')}} <span class="text-danger">*</span></label>
@@ -231,7 +280,19 @@
 <script>
     (function($) {
         "use strict";
-        var specification = true;
+        var specification = false;
+
+        function syncSpecificationState(enabled) {
+            specification = !!enabled;
+            if (specification) {
+                $("#specification-box").removeClass('d-none');
+                $("#specification-box").find('input, select, button').prop('disabled', false);
+            } else {
+                $("#specification-box").addClass('d-none');
+                $("#specification-box").find('input, select, button').prop('disabled', true);
+            }
+        }
+
         $(document).ready(function () {
             $("#name").on("focusout",function(e){
                 $("#slug").val(convertToSlug($(this).val()));
@@ -295,6 +356,9 @@
             })
 
             $("#addNewSpecificationRow").on('click',function(){
+                if (!specification) {
+                    return;
+                }
                 var html = $("#hidden-specification-box").html();
                 $("#specification-box").append(html);
             })
@@ -303,18 +367,11 @@
                 $(this).closest('.delete-specification-row').remove();
             });
 
+            $("#status_toggle").on('change', function () {
+                syncSpecificationState($(this).is(':checked'));
+            });
 
-            $("#manageSpecificationBox").on("click",function(){
-                if(specification){
-                    specification = false;
-                    $("#specification-box").addClass('d-none');
-                }else{
-                    specification = true;
-                    $("#specification-box").removeClass('d-none');
-                }
-
-
-            })
+            syncSpecificationState($("#status_toggle").is(':checked'));
 
         });
     })(jQuery);
@@ -334,6 +391,20 @@
         }
         reader.readAsDataURL(event.target.files[0]);
     };
+
+    (function ($) {
+        function toggleOpeningPriceHint() {
+            var qty = parseInt($('#openingStockInput').val(), 10) || 0;
+            var $hint = $('#openingPriceHint');
+            if (qty > 0) {
+                $hint.removeClass('text-muted').addClass('text-danger').text('({{ __('admin.Required if opening stock is added') }})');
+            } else {
+                $hint.removeClass('text-danger').addClass('text-muted').text('({{ __('admin.Optional') }})');
+            }
+        }
+        $('#openingStockInput').on('input change', toggleOpeningPriceHint);
+        toggleOpeningPriceHint();
+    })(jQuery);
 
 </script>
 
