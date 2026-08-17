@@ -182,6 +182,22 @@
             </ul>
           </li>
 
+          <li class="nav-item dropdown {{ Route::is('admin.report*') ? 'active' : '' }}">
+            <a href="#" class="nav-link has-dropdown">
+            <div class="icon"><i class="fas fa-chart-bar"></i></div>
+            <span>{{__('admin.Reports')}}</span></a>
+            <ul class="dropdown-menu">
+                <li class="{{ Route::is('admin.report.dashboard') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.report.dashboard') }}">{{__('admin.Report Dashboard')}}</a></li>
+                <li class="{{ Route::is('admin.report.inventory') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.report.inventory') }}">{{__('admin.Inventory Report')}}</a></li>
+                <li class="{{ Route::is('admin.report.expense') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.report.expense') }}">{{__('admin.Expense Report')}}</a></li>
+                <li class="{{ Route::is('admin.report.purchase-order') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.report.purchase-order') }}">{{__('admin.Purchase Order Report')}}</a></li>
+                <li class="{{ Route::is('admin.report.receive') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.report.receive') }}">{{__('admin.Purchase Receive Report')}}</a></li>
+                <li class="{{ Route::is('admin.report.returns') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.report.returns') }}">{{__('admin.Return Report')}}</a></li>
+                <li class="{{ Route::is('admin.report.sales') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.report.sales') }}">{{__('admin.Sales Report')}}</a></li>
+                <li class="{{ Route::is('admin.report.profit') ? 'active' : '' }}"><a class="nav-link" href="{{ route('admin.report.profit') }}">{{__('admin.Profit Report')}}</a></li>
+            </ul>
+          </li>
+
           <li class="nav-item dropdown {{ Route::is('admin.pos.index') || Route::is('admin.pos.bulk.order') ? 'active' : '' }}">
             <a href="#" class="nav-link has-dropdown">
             <div class="icon">

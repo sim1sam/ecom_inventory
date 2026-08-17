@@ -68,6 +68,7 @@ use App\Http\Controllers\WEB\Admin\PurchaseReceiptController;
 use App\Http\Controllers\WEB\Admin\PurchaseReturnController;
 use App\Http\Controllers\WEB\Admin\ExpenseController;
 use App\Http\Controllers\WEB\Admin\ExpenseCategoryController;
+use App\Http\Controllers\WEB\Admin\ReportController;
 use App\Http\Controllers\WEB\Admin\NotificationController;
 use App\Http\Controllers\WEB\Admin\PosController;
 
@@ -940,6 +941,19 @@ Route::group(['as'=> 'admin.', 'prefix' => 'admin'],function (){
     Route::post('expense-category', [ExpenseCategoryController::class, 'store'])->name('expense-category.store');
     Route::put('expense-category/{id}', [ExpenseCategoryController::class, 'update'])->name('expense-category.update');
     Route::delete('expense-category/{id}', [ExpenseCategoryController::class, 'destroy'])->name('expense-category.destroy');
+
+    Route::get('report', [ReportController::class, 'dashboard'])->name('report.dashboard');
+    Route::get('report/inventory', [ReportController::class, 'inventory'])->name('report.inventory');
+    Route::get('report/expense', [ReportController::class, 'expense'])->name('report.expense');
+    Route::get('report/purchase-order', [ReportController::class, 'purchaseOrder'])->name('report.purchase-order');
+    Route::get('report/receive', [ReportController::class, 'receive'])->name('report.receive');
+    Route::get('report/return', [ReportController::class, 'returns'])->name('report.returns');
+    Route::get('report/sales', [ReportController::class, 'sales'])->name('report.sales');
+    Route::get('report/{report}/export/{format}', [ReportController::class, 'export'])
+        ->where('report', 'dashboard|inventory|expense|purchase-order|receive|returns|sales|profit')
+        ->where('format', 'excel|csv|pdf')
+        ->name('report.export');
+    Route::get('report/profit', [ReportController::class, 'profit'])->name('report.profit');
 
     Route::get('purchase-return', [PurchaseReturnController::class, 'index'])->name('purchase-return.index');
     Route::get('purchase-return/create', [PurchaseReturnController::class, 'create'])->name('purchase-return.create');
