@@ -459,8 +459,9 @@
     font-style: italic;
 }
 
-/* Carousel Controls */
-.carousel-control-prev, .carousel-control-next {
+/* Carousel Controls — testimonial only */
+#testimonialCarousel .carousel-control-prev,
+#testimonialCarousel .carousel-control-next {
     width: 50px;
     height: 50px;
     background: rgba(255, 255, 255, 0.9);
@@ -473,22 +474,24 @@
     z-index: 1051; /* ensure above other UI elements on mobile */
 }
 
-.carousel-control-prev {
+#testimonialCarousel .carousel-control-prev {
     left: 15px;
 }
 
-.carousel-control-next {
+#testimonialCarousel .carousel-control-next {
     right: 15px;
 }
 
-.carousel-control-prev-icon, .carousel-control-next-icon {
+#testimonialCarousel .carousel-control-prev-icon,
+#testimonialCarousel .carousel-control-next-icon {
     background-size: 20px 20px;
     filter: invert(0.5);
     width: 20px;
     height: 20px;
 }
 
-.carousel-control-prev:hover, .carousel-control-next:hover {
+#testimonialCarousel .carousel-control-prev:hover,
+#testimonialCarousel .carousel-control-next:hover {
     background: #ffffff;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     opacity: 1;
@@ -521,16 +524,17 @@
         padding: 60px 0;
     }
 
-    /* Size tweaks on mobile */
-    .carousel-control-prev, .carousel-control-next {
+    /* Size tweaks on mobile — testimonial carousel */
+    #testimonialCarousel .carousel-control-prev,
+    #testimonialCarousel .carousel-control-next {
         width: 40px;
         height: 40px;
     }
-    /* Correct positions so next is on the right and prev on the left */
-    .carousel-control-prev { left: 10px; }
-    .carousel-control-next { right: 10px; }
+    #testimonialCarousel .carousel-control-prev { left: 10px; }
+    #testimonialCarousel .carousel-control-next { right: 10px; }
 
-    .carousel-control-prev-icon, .carousel-control-next-icon {
+    #testimonialCarousel .carousel-control-prev-icon,
+    #testimonialCarousel .carousel-control-next-icon {
         background-size: 16px 16px;
         width: 16px;
         height: 16px;
@@ -1040,78 +1044,7 @@
 @endpush
 
 @section('content')
-@if(isset($sliders) && $sliders->count() > 0)
-<!-- Dynamic Slider Section -->
-<section class="slider-section">
-    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-indicators">
-            @foreach($sliders as $index => $slider)
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ $index }}" class="{{ $index == 0 ? 'active' : '' }}"></button>
-            @endforeach
-        </div>
-        <div class="carousel-inner">
-            @foreach($sliders as $index => $slider)
-            <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
-                <div class="hero-section" style="background-image: url('{{ asset($slider->image) }}'); background-size: cover; background-position: center;">
-                    <div class="container">
-                        <div class="row align-items-center">
-                            <div class="col-lg-6 {{ $slider->text_position == 'right' ? 'order-lg-2' : '' }}">
-                                <div class="hero-content fade-in text-{{ $slider->text_position == 'right' ? 'end' : 'start' }}">
-                                    <h1>{{ $slider->title_one ?? 'Diamonds Jewellery Collection' }}</h1>
-                                    <p>{{ $slider->title_two ?? 'Discover our exquisite collection of handcrafted diamond jewellery with unmatched elegance and sophistication.' }}</p>
-                                    <div class="hero-buttons">
-                                        @if($slider->product_slug)
-                                        <a href="{{ route('product-detail', ['slug' => $slider->product_slug]) }}" class="btn btn-primary">Shop Now</a>
-                                        @else
-                                        <a href="{{ route('products') }}" class="btn btn-primary">Shop Now</a>
-                                        @endif
-                                        <a href="{{ route('about') }}" class="btn btn-outline-primary">Learn More</a>
-                                    </div>
-                                </div>
-                            </div>
-                            @if($slider->text_position == 'right')
-                            <div class="col-lg-6 order-lg-1">
-                                <!-- Image space when text is on right -->
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-        </button>
-    </div>
-</section>
-@else
-<!-- Default Hero Section -->
-<section class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <div class="hero-content fade-in">
-                    <h1>Diamonds Jewellery Collection</h1>
-                    <p>Discover our exquisite collection of handcrafted diamond jewellery. Each piece is carefully selected and designed to celebrate life's most precious moments with unmatched elegance and sophistication.</p>
-                    <div class="hero-buttons">
-                        <a href="{{ route('products') }}" class="btn btn-primary">Shop Now</a>
-                        <a href="{{ route('about') }}" class="btn btn-outline-primary">Learn More</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="hero-image fade-in">
-                    <img src="{{ asset('frontend/images/hero-jewelry.jpg') }}" alt="Diamond Jewellery Collection" class="img-fluid">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-@endif
+@include('frontend.partials.home-hero-slider', ['sliders' => $sliders ?? collect()])
 
 <!-- Services Section moved to bottom -->
 

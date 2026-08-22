@@ -8,7 +8,6 @@
 
 <a href="{{ $cardUrl }}" class="home-promo-card fade-in">
     <img src="{{ $cardImage }}" alt="{{ $cardTitle ?: __('Promo banner') }}" class="home-promo-card__img" loading="lazy">
-    <div class="home-promo-card__overlay"></div>
     <div class="home-promo-card__content">
         @if($cardTitle)
             <h3 class="home-promo-card__title">{{ $cardTitle }}</h3>

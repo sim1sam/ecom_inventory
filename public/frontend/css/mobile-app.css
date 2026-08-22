@@ -59,6 +59,19 @@
         font-size: 0.88rem;
     }
 
+    body.mobile-app-mode .home-hero__slide {
+        min-height: calc(52vh - var(--mobile-header-height));
+        max-height: 460px;
+    }
+
+    body.mobile-app-mode .home-hero__container {
+        padding-bottom: 2.5rem;
+    }
+
+    body.mobile-app-mode .home-hero__nav {
+        display: none;
+    }
+
     body.mobile-app-mode .pd-page,
     body.mobile-app-mode .cart-page {
         padding: 1rem 0 calc(5.5rem + env(safe-area-inset-bottom, 0px));
@@ -88,6 +101,11 @@
         height: 36px;
         border-radius: 10px;
         font-size: 0.85rem;
+    }
+
+    body.mobile-app-mode .product-price .current-price {
+        font-size: 1rem;
+        font-weight: 800;
     }
 
     /* Product detail mobile */
