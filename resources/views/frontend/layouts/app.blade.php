@@ -13,11 +13,13 @@
 <head>
     <meta charset="UTF-8">
     @include('frontend.partials.gtm_head')
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="format-detection" content="telephone=no">
-    <meta name="theme-color" content="#d4af37">
+    <meta name="theme-color" content="{{ $setting->theme_one ?? '#8B7BA8' }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>@yield('title', isset($seoSetting) ? $seoSetting->seo_title : 'Diamonds Jewellery Collection')</title>
     <meta name="description" content="@yield('meta_description', isset($seoSetting) ? $seoSetting->seo_description : 'Discover our exquisite collection of diamond jewellery, rings, necklaces, and more.')">
     <meta name="keywords" content="@yield('meta_keywords', isset($seoSetting) ? $seoSetting->seo_keywords : 'diamonds, jewellery, rings, necklaces, earrings, bracelets')">
@@ -84,7 +86,8 @@
 
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('frontend/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('frontend/css/style.css') }}?v={{ filemtime(public_path('frontend/css/style.css')) }}">
+    <link rel="stylesheet" href="{{ asset('frontend/css/mobile-app.css') }}?v={{ filemtime(public_path('frontend/css/mobile-app.css')) }}">
     
     <!-- Dynamic Theme Colors - NOORAANI Elegant Theme -->
     <style>
@@ -260,15 +263,18 @@
             font-weight: bold;
         }
         
-        .nav-link {
+        .navbar-nav > .nav-item > .nav-link,
+        .navbar-nav > .nav-link {
             color: #333 !important;
             font-weight: 500;
             padding: 0.5rem 1rem;
             transition: color 0.3s ease;
         }
         
-        .nav-link:hover,
-        .nav-link.active {
+        .navbar-nav > .nav-item > .nav-link:hover,
+        .navbar-nav > .nav-item > .nav-link.active,
+        .navbar-nav > .nav-link:hover,
+        .navbar-nav > .nav-link.active {
             color: var(--primary-color) !important;
         }
         
@@ -839,27 +845,6 @@
             display: none !important;
         }
         
-        /* Breadcrumbs (global) - set to primary color */
-        nav[aria-label="breadcrumb"] .breadcrumb {
-            background: transparent;
-            padding: 0;
-            margin: 0;
-        }
-        nav[aria-label="breadcrumb"] .breadcrumb-item a {
-            color: var(--primary-color) !important;
-            text-decoration: none;
-        }
-        nav[aria-label="breadcrumb"] .breadcrumb-item a:hover {
-            color: var(--accent-color, #A594C4) !important;
-        }
-        nav[aria-label="breadcrumb"] .breadcrumb-item.active {
-            color: var(--primary-color) !important;
-        }
-        nav[aria-label="breadcrumb"] .breadcrumb-item + .breadcrumb-item::before {
-            content: "/";
-            color: var(--primary-color) !important;
-        }
-
     </style>
     
     @stack('styles')
@@ -938,10 +923,12 @@
                     <span class="navbar-toggler-icon"><span></span></span>
                     <span class="close-icon d-none"><i class="fas fa-times fs-4"></i></span>
                 </button>
+                        <div class="mobile-actions-right">
                         <a href="{{ route('cart') }}" class="btn-icon text-dark position-relative wsus__cart_icon mobile-cart-btn" aria-label="Cart">
                             <i class="fas fa-shopping-bag"></i>
                             <span class="cart-count badge bg-primary position-absolute top-0 start-100 translate-middle d-none">0</span>
                         </a>
+                        </div>
                     </div>
                     
                     <!-- Collapsible Content -->
@@ -988,6 +975,9 @@
                         
                         <!-- Cart and User Actions -->
                         <div class="header-actions d-flex align-items-center">
+                            <button type="button" class="btn btn-link text-dark me-2 d-none d-lg-inline-flex align-items-center justify-content-center desktop-app-btn" data-bs-toggle="modal" data-bs-target="#appDownloadSheet" title="Get the app" aria-label="Download app">
+                                <i class="fas fa-mobile-alt fs-5"></i>
+                            </button>
                             <a href="{{ route('cart') }}" class="btn btn-link text-dark me-3 position-relative d-none d-lg-inline-flex wsus__cart_icon">
                                 <i class="fas fa-shopping-bag fs-5"></i>
                                 <span class="cart-count badge bg-primary position-absolute top-0 start-100 translate-middle rounded-pill d-none">0</span>
@@ -1137,6 +1127,9 @@
             </div>
         </div>
     </footer>
+
+    @include('frontend.partials.mobile-app-menu')
+    @include('frontend.partials.mobile-app-shell')
     
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1256,94 +1249,3 @@
       @endif
 </body>
 </html>
-
-<!-- Mobile Offcanvas Menu -->
-<div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="mobileMenuLabel">Menu</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-<div class="offcanvas-body mb-3">
-        <!-- Mobile Search Bar -->
-        <div class="mobile-search mb-6">
-            <form action="{{ route('products') }}" method="GET" class="position-relative">
-                <input type="text" name="search" class="form-control pe-5" placeholder="Search" value="{{ request('search') }}" style="border-radius: 25px;">
-                <button type="submit" class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
-        </div>
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a>
-            </li>
-            <li class="nav-item">
-                <button class="btn btn-link nav-link p-0" type="button" data-bs-toggle="collapse" data-bs-target="#mobileCategories" aria-expanded="false" aria-controls="mobileCategories">
-                    Categories <i class="fas fa-chevron-down ms-1"></i>
-                </button>
-                <div class="collapse" id="mobileCategories">
-                    <ul class="list-unstyled ps-3">
-                        @foreach($categories as $category)
-                            <li><a class="dropdown-item" href="{{ route('category', $category->slug) }}">{{ $category->name }}</a></li>
-                        @endforeach
-                    </ul>
-                </div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('products') ? 'active' : '' }}" href="{{ route('products') }}">Products</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('our-story') ? 'active' : '' }}" href="{{ route('our-story') }}">Our Story</a>
-            </li>
-    
-        </ul>
-
-        <hr>
-
-        <!-- Optional: Quick links for auth -->
-        <div class="mt-3">
-            @auth
-                <a href="{{ route('dashboard') }}" class="d-block mb-2"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
-                <a href="{{ route('profile') }}" class="d-block mb-2"><i class="fas fa-user me-2"></i> Profile</a>
-                <a href="{{ route('orders') }}" class="d-block mb-2"><i class="fas fa-shopping-bag me-2"></i> Orders</a>
-            @else
-                <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm me-2">Login</a>
-                <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Register</a>
-            @endauth
-        </div>
-</div>
-</div>
-<style>
-    .mobile-actions-container .navbar-toggler-icon { display: inline-block; }
-    .mobile-actions-container .close-icon { display: inline-block; }
-    .mobile-actions-container .close-icon.d-none { display: none !important; }
-    /* Ensure mobile offcanvas menu items render clearly */
-    #mobileMenu .offcanvas-body { padding-top: 0.75rem; }
-    #mobileMenu .offcanvas-body .navbar-nav { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
-    #mobileMenu .offcanvas-body .navbar-nav .nav-link { display: block !important; padding: 0.75rem 1rem; }
-    /* Mobile offcanvas search bar sticky at top */
-    #mobileMenu .mobile-search { position: sticky; top: 0; background: #fff; margin-top: 2.5rem; padding-top: 0.25rem; padding-bottom: 0.5rem; z-index: 2; border-bottom: 1px solid #f1f1f1; }
-    /* Add top spacing for auth buttons on mobile */
-    #mobileMenu .offcanvas-body .mt-3 .btn { margin-top: 0.75rem; }
-    @media (max-width: 576px) { #mobileMenu .offcanvas-body .mt-3 .btn { margin-top: 1rem; } }
-</style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const offcanvasEl = document.getElementById('mobileMenu');
-  const toggleBtn = document.querySelector('.mobile-menu-btn');
-  if (offcanvasEl && toggleBtn) {
-    const hamburger = toggleBtn.querySelector('.navbar-toggler-icon');
-    const closeIcon = toggleBtn.querySelector('.close-icon');
-    offcanvasEl.addEventListener('shown.bs.offcanvas', function () {
-      toggleBtn.setAttribute('aria-expanded', 'true');
-      if (hamburger) hamburger.classList.add('d-none');
-      if (closeIcon) closeIcon.classList.remove('d-none');
-    });
-    offcanvasEl.addEventListener('hidden.bs.offcanvas', function () {
-      toggleBtn.setAttribute('aria-expanded', 'false');
-      if (hamburger) hamburger.classList.remove('d-none');
-      if (closeIcon) closeIcon.classList.add('d-none');
-    });
-  }
-});
-</script>

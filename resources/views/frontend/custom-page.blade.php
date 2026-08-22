@@ -12,22 +12,6 @@
     text-align: center;
 }
 
-.breadcrumb {
-    background: transparent;
-    padding: 0;
-    margin: 0;
-}
-
-.breadcrumb-item + .breadcrumb-item::before {
-    content: "/";
-    color: #6c757d;
-}
-
-.breadcrumb-item a { color: var(--primary-color, #d4af37); text-decoration: none; }
-.breadcrumb-item a:hover { color: var(--accent-color, #e8c547); }
-.breadcrumb-item.active { color: #6c757d; }
-nav[aria-label="breadcrumb"] { background: transparent; padding: 20px 0; }
-
 .custom-page-section { padding: 60px 0; }
 .custom-page-content {
     background: rgba(255, 255, 255, 0.95);
@@ -58,16 +42,6 @@ nav[aria-label="breadcrumb"] { background: transparent; padding: 20px 0; }
         </div>
     </div>
 </section>
-
-<!-- Breadcrumb -->
-<div class="container">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ $page->page_name }}</li>
-        </ol>
-    </nav>
-</div>
 
 <!-- Content -->
 <section class="custom-page-section">

@@ -156,106 +156,34 @@ body.category-page .main-content {
     @endif
 
     <div class="row category-shop-row">
-        <div class="col-lg-3 col-md-12 mb-4 mb-lg-0">
-            <button type="button" class="btn btn-outline-primary w-100 d-lg-none mb-3 category-filter-toggle" id="categoryFilterToggle">
-                <i class="fas fa-filter me-2"></i>{{ __('Filters') }}
-            </button>
-
+        <div class="col-lg-3 d-none d-lg-block mb-4 mb-lg-0">
             <div class="filters-sidebar" id="categoryFiltersSidebar">
-                <div class="filters-sidebar__head d-none d-lg-flex">
+                <div class="filters-sidebar__head">
                     <h5 class="mb-0">{{ __('Filters') }}</h5>
                 </div>
-
-                @if($category->subCategories->where('status', 1)->count() > 0)
-                <div class="filter-section">
-                    <h6 class="filter-title">{{ __('Sub-Category') }}</h6>
-                    <div class="filter-options">
-                        @foreach($category->subCategories->where('status', 1) as $subCategory)
-                        <div class="form-check">
-                            <input class="form-check-input subcategory-filter" type="checkbox"
-                                   value="{{ $subCategory->id }}" id="subCat{{ $subCategory->id }}"
-                                   {{ in_array($subCategory->id, $activeSubCategories ?? []) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="subCat{{ $subCategory->id }}">
-                                {{ $subCategory->name }}
-                            </label>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-                @endif
-
-                @if(($brands ?? collect())->count() > 0)
-                <div class="filter-section">
-                    <h6 class="filter-title">{{ __('Brand') }}</h6>
-                    <div class="filter-options">
-                        @foreach($brands as $brand)
-                        <div class="form-check">
-                            <input class="form-check-input brand-filter" type="checkbox"
-                                   value="{{ $brand->id }}" id="brand{{ $brand->id }}"
-                                   {{ in_array($brand->id, $activeBrands ?? []) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="brand{{ $brand->id }}">
-                                {{ $brand->name }}
-                            </label>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-                @endif
-
-                <div class="filter-section">
-                    <h6 class="filter-title">{{ __('Price Range') }}</h6>
-                    <div class="price-range-slider" id="categoryPriceRange"
-                         data-floor="{{ $priceFloor }}"
-                         data-ceil="{{ $priceCeil }}"
-                         data-step="{{ $priceStep }}"
-                         data-currency="{{ $setting->currency_icon }}">
-                        <div class="price-range-slider__values">
-                            <span id="priceRangeMinLabel">{{ $setting->currency_icon }}{{ number_format($selectedMinPrice) }}</span>
-                            <span class="price-range-slider__sep">—</span>
-                            <span id="priceRangeMaxLabel">{{ $setting->currency_icon }}{{ number_format($selectedMaxPrice) }}</span>
-                        </div>
-                        <div class="price-range-slider__track">
-                            <div class="price-range-slider__fill" id="priceRangeFill"></div>
-                            <input type="range" class="price-range-slider__input" id="priceRangeMin"
-                                   min="{{ $priceFloor }}" max="{{ $priceCeil }}" step="{{ $priceStep }}"
-                                   value="{{ $selectedMinPrice }}">
-                            <input type="range" class="price-range-slider__input" id="priceRangeMax"
-                                   min="{{ $priceFloor }}" max="{{ $priceCeil }}" step="{{ $priceStep }}"
-                                   value="{{ $selectedMaxPrice }}">
-                        </div>
-                        <button type="button" class="btn btn-outline-primary btn-sm mt-3 w-100" id="applyPriceFilter">
-                            {{ __('Apply Price Filter') }}
-                        </button>
-                    </div>
-                </div>
-
-                <div class="filter-section">
-                    <h6 class="filter-title">{{ __('Rating') }}</h6>
-                    <div class="filter-options">
-                        @for($i = 5; $i >= 1; $i--)
-                        <div class="form-check">
-                            <input class="form-check-input rating-filter" type="radio"
-                                   name="rating" value="{{ $i }}" id="rating{{ $i }}"
-                                   {{ (int) request('rating') === $i ? 'checked' : '' }}>
-                            <label class="form-check-label" for="rating{{ $i }}">
-                                @for($j = 1; $j <= $i; $j++)
-                                    <i class="fas fa-star text-warning small"></i>
-                                @endfor
-                                & Up
-                            </label>
-                        </div>
-                        @endfor
-                    </div>
-                </div>
-
-                <button type="button" class="btn btn-outline-secondary w-100" id="clearCategoryFilters">
-                    {{ __('Clear All Filters') }}
-                </button>
+                @include('frontend.partials.category-filters-content', ['filterContext' => 'desktop'])
             </div>
         </div>
 
         <div class="col-lg-9 col-md-12">
-            <div class="products-toolbar mb-4">
+            <div class="mobile-shop-bar d-lg-none">
+                <button type="button" class="mobile-shop-bar__chip" data-bs-toggle="offcanvas" data-bs-target="#categoryFilterSheet" aria-controls="categoryFilterSheet">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>{{ __('Filters') }}</span>
+                </button>
+                <div class="mobile-shop-bar__sort">
+                    <select class="form-select form-select-sm" id="categorySortMobile" aria-label="{{ __('Sort products') }}">
+                        <option value="name_asc" {{ request('sort') === 'name_asc' ? 'selected' : '' }}>{{ __('Name (A-Z)') }}</option>
+                        <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>{{ __('Name (Z-A)') }}</option>
+                        <option value="price_asc" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>{{ __('Price (Low to High)') }}</option>
+                        <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>{{ __('Price (High to Low)') }}</option>
+                        <option value="newest" {{ request('sort') === 'newest' ? 'selected' : '' }}>{{ __('Newest First') }}</option>
+                        <option value="rating" {{ request('sort') === 'rating' ? 'selected' : '' }}>{{ __('Highest Rated') }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="products-toolbar mb-4 d-none d-md-block">
                 <div class="row align-items-center g-3">
                     <div class="col-md-6">
                         <p class="mb-0 text-muted small">
@@ -323,6 +251,23 @@ body.category-page .main-content {
         @endif
     </div>
         </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-bottom mobile-filter-sheet d-lg-none" tabindex="-1" id="categoryFilterSheet" aria-labelledby="categoryFilterSheetLabel">
+    <div class="mobile-filter-sheet__handle" aria-hidden="true"></div>
+    <div class="offcanvas-header mobile-filter-sheet__header">
+        <h5 class="offcanvas-title" id="categoryFilterSheetLabel">{{ __('Filters') }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{{ __('Close') }}"></button>
+    </div>
+    <div class="offcanvas-body mobile-filter-sheet__body">
+        <div class="filters-sidebar filters-sidebar--sheet" id="categoryFiltersMobile">
+            @include('frontend.partials.category-filters-content', ['filterContext' => 'mobile'])
+        </div>
+    </div>
+    <div class="mobile-filter-sheet__footer">
+        <button type="button" class="btn btn-outline-secondary" id="clearCategoryFiltersMobile">{{ __('Clear') }}</button>
+        <button type="button" class="btn btn-primary" id="applyCategoryFiltersMobile">{{ __('Apply Filters') }}</button>
     </div>
 </div>
 
@@ -570,6 +515,13 @@ body.category-page .main-content {
     overflow-y: auto;
 }
 
+@media (max-width: 991.98px) {
+    .mobile-filter-sheet .filter-options {
+        max-height: none;
+        overflow: visible;
+    }
+}
+
 .filter-options .form-check {
     margin-bottom: 8px;
 }
@@ -583,107 +535,6 @@ body.category-page .main-content {
 .category-filter-toggle {
     border-radius: 10px;
     font-weight: 600;
-}
-
-.price-range-slider__values {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #2d2a3a;
-    margin-bottom: 12px;
-}
-
-.price-range-slider__sep {
-    color: #6b6580;
-    font-weight: 400;
-}
-
-.price-range-slider__track {
-    position: relative;
-    height: 28px;
-}
-
-.price-range-slider__fill {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 6px;
-    border-radius: 999px;
-    background: var(--primary-color, #8B7BA8);
-    pointer-events: none;
-    left: 0;
-    width: 100%;
-}
-
-.price-range-slider__input {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 28px;
-    margin: 0;
-    background: none;
-    pointer-events: none;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-.price-range-slider__input::-webkit-slider-runnable-track {
-    height: 6px;
-    border-radius: 999px;
-    background: #e8e4ef;
-}
-
-.price-range-slider__input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #fff;
-    border: 2px solid var(--primary-color, #8B7BA8);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    pointer-events: auto;
-    margin-top: -6px;
-    cursor: pointer;
-}
-
-.price-range-slider__input::-moz-range-track {
-    height: 6px;
-    border-radius: 999px;
-    background: #e8e4ef;
-}
-
-.price-range-slider__input::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #fff;
-    border: 2px solid var(--primary-color, #8B7BA8);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    pointer-events: auto;
-    cursor: pointer;
-}
-
-.price-range-slider__input:nth-child(3) {
-    z-index: 2;
-}
-
-.price-range-slider__input:nth-child(4) {
-    z-index: 3;
-}
-
-@media (max-width: 991px) {
-    .filters-sidebar {
-        display: none;
-    }
-
-    .filters-sidebar.is-open {
-        display: block;
-    }
 }
 
 .view-toggle .view-btn {
@@ -805,10 +656,17 @@ body.category-page .main-content {
         window.location.href = buildCategoryFilterParams(extra);
     }
 
+    function getCategoryFilterRoot() {
+        return window.innerWidth >= 992
+            ? document.getElementById('categoryFiltersSidebar')
+            : document.getElementById('categoryFiltersMobile');
+    }
+
     function collectCategoryFilterParams() {
+        const root = getCategoryFilterRoot() || document;
         const params = {};
 
-        const selectedSubCategories = Array.from(document.querySelectorAll('.subcategory-filter:checked')).map(function (el) {
+        const selectedSubCategories = Array.from(root.querySelectorAll('.subcategory-filter:checked')).map(function (el) {
             return el.value;
         });
         if (selectedSubCategories.length) {
@@ -817,7 +675,7 @@ body.category-page .main-content {
             params.sub_category = null;
         }
 
-        const selectedBrands = Array.from(document.querySelectorAll('.brand-filter:checked')).map(function (el) {
+        const selectedBrands = Array.from(root.querySelectorAll('.brand-filter:checked')).map(function (el) {
             return el.value;
         });
         if (selectedBrands.length) {
@@ -826,95 +684,34 @@ body.category-page .main-content {
             params.brand = null;
         }
 
-        const selectedRating = document.querySelector('.rating-filter:checked');
+        const selectedRating = root.querySelector('.rating-filter:checked');
         params.rating = selectedRating ? selectedRating.value : null;
 
-        const minRange = document.getElementById('priceRangeMin');
-        const maxRange = document.getElementById('priceRangeMax');
-        const priceWrap = document.getElementById('categoryPriceRange');
-        if (minRange && maxRange && priceWrap) {
-            const floor = parseInt(priceWrap.dataset.floor, 10);
-            const ceil = parseInt(priceWrap.dataset.ceil, 10);
-            let minVal = parseInt(minRange.value, 10);
-            let maxVal = parseInt(maxRange.value, 10);
-
-            if (minVal > floor || maxVal < ceil) {
-                params.min_price = minVal > floor ? minVal : null;
-                params.max_price = maxVal < ceil ? maxVal : null;
-            } else {
-                params.min_price = null;
-                params.max_price = null;
-            }
+        const priceWrap = root.querySelector('[data-price-range-slider]');
+        if (priceWrap && window.PriceRangeFilter) {
+            Object.assign(params, window.PriceRangeFilter.getParams(priceWrap));
         }
 
         return params;
     }
 
-    function formatPriceAmount(value) {
-        const priceWrap = document.getElementById('categoryPriceRange');
-        const currency = priceWrap ? priceWrap.dataset.currency : '';
-        return currency + Number(value).toLocaleString();
+    function shouldAutoApplyCategoryFilters() {
+        return window.innerWidth >= 992;
     }
 
-    function syncPriceRangeSlider() {
-        const minRange = document.getElementById('priceRangeMin');
-        const maxRange = document.getElementById('priceRangeMax');
-        const fill = document.getElementById('priceRangeFill');
-        const minLabel = document.getElementById('priceRangeMinLabel');
-        const maxLabel = document.getElementById('priceRangeMaxLabel');
-        const priceWrap = document.getElementById('categoryPriceRange');
-
-        if (!minRange || !maxRange || !fill || !priceWrap) {
-            return;
-        }
-
-        const floor = parseInt(priceWrap.dataset.floor, 10);
-        const ceil = parseInt(priceWrap.dataset.ceil, 10);
-        let minVal = parseInt(minRange.value, 10);
-        let maxVal = parseInt(maxRange.value, 10);
-
-        if (minVal > maxVal) {
-            if (document.activeElement === minRange) {
-                maxVal = minVal;
-                maxRange.value = maxVal;
-            } else {
-                minVal = maxVal;
-                minRange.value = minVal;
-            }
-        }
-
-        const range = ceil - floor || 1;
-        const left = ((minVal - floor) / range) * 100;
-        const right = ((maxVal - floor) / range) * 100;
-
-        fill.style.left = left + '%';
-        fill.style.width = Math.max(0, right - left) + '%';
-
-        if (minLabel) {
-            minLabel.textContent = formatPriceAmount(minVal);
-        }
-        if (maxLabel) {
-            maxLabel.textContent = formatPriceAmount(maxVal);
-        }
-    }
-
-    const minRangeEl = document.getElementById('priceRangeMin');
-    const maxRangeEl = document.getElementById('priceRangeMax');
-    if (minRangeEl && maxRangeEl) {
-        minRangeEl.addEventListener('input', syncPriceRangeSlider);
-        maxRangeEl.addEventListener('input', syncPriceRangeSlider);
-        syncPriceRangeSlider();
-    }
-
-    document.querySelectorAll('.subcategory-filter, .brand-filter').forEach(function (el) {
+    document.querySelectorAll('#categoryFiltersSidebar .subcategory-filter, #categoryFiltersSidebar .brand-filter').forEach(function (el) {
         el.addEventListener('change', function () {
-            applyCategoryFilters(collectCategoryFilterParams());
+            if (shouldAutoApplyCategoryFilters()) {
+                applyCategoryFilters(collectCategoryFilterParams());
+            }
         });
     });
 
-    document.querySelectorAll('.rating-filter').forEach(function (el) {
+    document.querySelectorAll('#categoryFiltersSidebar .rating-filter').forEach(function (el) {
         el.addEventListener('change', function () {
-            applyCategoryFilters(collectCategoryFilterParams());
+            if (shouldAutoApplyCategoryFilters()) {
+                applyCategoryFilters(collectCategoryFilterParams());
+            }
         });
     });
 
@@ -932,11 +729,37 @@ body.category-page .main-content {
         });
     }
 
-    const filterToggle = document.getElementById('categoryFilterToggle');
-    const filterSidebar = document.getElementById('categoryFiltersSidebar');
-    if (filterToggle && filterSidebar) {
-        filterToggle.addEventListener('click', function () {
-            filterSidebar.classList.toggle('is-open');
+    const applyMobileBtn = document.getElementById('applyCategoryFiltersMobile');
+    if (applyMobileBtn) {
+        applyMobileBtn.addEventListener('click', function () {
+            applyCategoryFilters(collectCategoryFilterParams());
+        });
+    }
+
+    const clearMobileBtn = document.getElementById('clearCategoryFiltersMobile');
+    if (clearMobileBtn) {
+        clearMobileBtn.addEventListener('click', function () {
+            window.location.href = categoryBaseUrl;
+        });
+    }
+
+    const categoryFilterSheet = document.getElementById('categoryFilterSheet');
+    if (categoryFilterSheet) {
+        categoryFilterSheet.addEventListener('shown.bs.offcanvas', function () {
+            if (window.PriceRangeFilter) {
+                const mobileWrap = categoryFilterSheet.querySelector('[data-price-range-slider]');
+                if (mobileWrap) {
+                    window.PriceRangeFilter.init(mobileWrap);
+                    window.PriceRangeFilter.sync(mobileWrap);
+                }
+            }
+        });
+    }
+
+    const categorySortMobile = document.getElementById('categorySortMobile');
+    if (categorySortMobile) {
+        categorySortMobile.addEventListener('change', function () {
+            window.sortProducts(this.value);
         });
     }
 

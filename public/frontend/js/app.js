@@ -703,8 +703,109 @@ function hideNotification() {
     return window.hideNotification();
 }
 
+// Price range dual-handle slider (products, category, brand pages)
+window.PriceRangeFilter = {
+    sync(wrap) {
+        if (!wrap) {
+            return;
+        }
+
+        const minRange = wrap.querySelector('.price-range-slider__input--min');
+        const maxRange = wrap.querySelector('.price-range-slider__input--max');
+        const fill = wrap.querySelector('.price-range-slider__fill');
+        const minLabel = wrap.querySelector('.price-range-slider__min-label');
+        const maxLabel = wrap.querySelector('.price-range-slider__max-label');
+
+        if (!minRange || !maxRange || !fill) {
+            return;
+        }
+
+        const floor = parseInt(wrap.dataset.floor, 10);
+        const ceil = parseInt(wrap.dataset.ceil, 10);
+        let minVal = parseInt(minRange.value, 10);
+        let maxVal = parseInt(maxRange.value, 10);
+
+        if (minVal > maxVal) {
+            if (document.activeElement === minRange) {
+                maxVal = minVal;
+                maxRange.value = maxVal;
+            } else {
+                minVal = maxVal;
+                minRange.value = minVal;
+            }
+        }
+
+        const range = ceil - floor || 1;
+        const left = ((minVal - floor) / range) * 100;
+        const right = ((maxVal - floor) / range) * 100;
+
+        fill.style.left = left + '%';
+        fill.style.width = Math.max(0, right - left) + '%';
+
+        const currency = wrap.dataset.currency || '';
+        if (minLabel) {
+            minLabel.textContent = currency + Number(minVal).toLocaleString();
+        }
+        if (maxLabel) {
+            maxLabel.textContent = currency + Number(maxVal).toLocaleString();
+        }
+    },
+
+    getParams(wrap) {
+        if (!wrap) {
+            return { min_price: null, max_price: null };
+        }
+
+        const minRange = wrap.querySelector('.price-range-slider__input--min');
+        const maxRange = wrap.querySelector('.price-range-slider__input--max');
+
+        if (!minRange || !maxRange) {
+            return { min_price: null, max_price: null };
+        }
+
+        const floor = parseInt(wrap.dataset.floor, 10);
+        const ceil = parseInt(wrap.dataset.ceil, 10);
+        const minVal = parseInt(minRange.value, 10);
+        const maxVal = parseInt(maxRange.value, 10);
+
+        return {
+            min_price: minVal > floor ? minVal : null,
+            max_price: maxVal < ceil ? maxVal : null,
+        };
+    },
+
+    init(wrap) {
+        if (!wrap || wrap.dataset.priceRangeReady === '1') {
+            return;
+        }
+
+        wrap.dataset.priceRangeReady = '1';
+        const minRange = wrap.querySelector('.price-range-slider__input--min');
+        const maxRange = wrap.querySelector('.price-range-slider__input--max');
+
+        if (minRange) {
+            minRange.addEventListener('input', () => this.sync(wrap));
+        }
+        if (maxRange) {
+            maxRange.addEventListener('input', () => this.sync(wrap));
+        }
+
+        this.sync(wrap);
+    },
+
+    initAll() {
+        document.querySelectorAll('[data-price-range-slider]').forEach((wrap) => {
+            this.init(wrap);
+        });
+    },
+};
+
 // Initialize cart and wishlist counts on page load
 document.addEventListener('DOMContentLoaded', function() {
+    if (window.PriceRangeFilter) {
+        window.PriceRangeFilter.initAll();
+    }
+
     updateCartCount();
     updateWishlistCount();
     

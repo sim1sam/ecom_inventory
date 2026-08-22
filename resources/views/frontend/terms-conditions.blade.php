@@ -12,36 +12,6 @@
     text-align: center;
 }
 
-/* Breadcrumb Styling */
-.breadcrumb {
-    background: transparent;
-    padding: 0;
-    margin: 0;
-}
-
-.breadcrumb-item + .breadcrumb-item::before {
-    content: "/";
-    color: #6c757d;
-}
-
-.breadcrumb-item a {
-    color: var(--primary-color, #d4af37);
-    text-decoration: none;
-}
-
-.breadcrumb-item a:hover {
-    color: var(--accent-color, #e8c547);
-}
-
-.breadcrumb-item.active {
-    color: #6c757d;
-}
-
-nav[aria-label="breadcrumb"] {
-    background: transparent;
-    padding: 20px 0;
-}
-
 .terms-section {
     padding: 60px 0;
 }
@@ -100,16 +70,6 @@ nav[aria-label="breadcrumb"] {
         </div>
     </div>
 </section>
-
-<!-- Breadcrumb -->
-<div class="container">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('home') }}">{{__('Home')}}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{__('Terms and Conditions')}}</li>
-        </ol>
-    </nav>
-</div>
 
 <!-- Terms Content Section -->
 <section class="terms-section">

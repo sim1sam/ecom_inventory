@@ -5,13 +5,6 @@
 @section('content')
 <div class="cart-page">
     <div class="container">
-        <nav aria-label="breadcrumb" class="pd-breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
-            </ol>
-        </nav>
-
         <div class="cart-page-header">
             <h1 class="cart-page-title">Shopping Cart</h1>
             <span class="cart-page-count">

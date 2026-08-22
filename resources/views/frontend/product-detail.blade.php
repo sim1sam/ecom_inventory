@@ -37,19 +37,6 @@
 
 <div class="pd-page">
     <div class="container">
-        <nav aria-label="breadcrumb" class="pd-breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('products') }}">Products</a></li>
-                @if($product->category)
-                <li class="breadcrumb-item">
-                    <a href="{{ route('category', $product->category->slug) }}">{{ $product->category->name }}</a>
-                </li>
-                @endif
-                <li class="breadcrumb-item active" aria-current="page">{{ $product->name }}</li>
-            </ol>
-        </nav>
-
         <div class="row pd-layout g-4">
             <div class="col-lg-6">
                 <div class="pd-gallery-card">
@@ -308,6 +295,23 @@
     </div>
 </div>
 
+@if($availableStock > 0)
+<div class="pd-mobile-bar d-lg-none" id="pdMobileBar">
+    <div class="pd-mobile-bar__price">
+        <span class="pd-mobile-bar__label">Price</span>
+        <strong id="pdMobilePrice">{{ $setting->currency_icon }}{{ number_format($basePrice, 2) }}</strong>
+    </div>
+    <div class="pd-mobile-bar__actions">
+        <button type="button" class="pd-mobile-bar__cart" id="addToCartMobile" data-product-id="{{ $product->id }}" aria-label="Add to cart">
+            <i class="fas fa-shopping-cart"></i>
+        </button>
+        <button type="button" class="pd-mobile-bar__buy" id="buyNowMobile" data-product-id="{{ $product->id }}">
+            Buy Now
+        </button>
+    </div>
+</div>
+@endif
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const currencyIcon = @json($setting->currency_icon);
@@ -362,9 +366,28 @@ document.addEventListener('DOMContentLoaded', function() {
             totalPrice += parseFloat(variant.dataset.price || 0);
         });
 
+        const formatted = currencyIcon + totalPrice.toFixed(2);
         if (detailCurrentPrice) {
-            detailCurrentPrice.textContent = currencyIcon + totalPrice.toFixed(2);
+            detailCurrentPrice.textContent = formatted;
         }
+        const mobilePrice = document.getElementById('pdMobilePrice');
+        if (mobilePrice) {
+            mobilePrice.textContent = formatted;
+        }
+    }
+
+    const addToCartMobile = document.getElementById('addToCartMobile');
+    if (addToCartMobile && addToCartBtn) {
+        addToCartMobile.addEventListener('click', function () {
+            addToCartBtn.click();
+        });
+    }
+
+    const buyNowMobile = document.getElementById('buyNowMobile');
+    if (buyNowMobile && buyNowBtn) {
+        buyNowMobile.addEventListener('click', function () {
+            buyNowBtn.click();
+        });
     }
 
     function validateVariantSelection() {

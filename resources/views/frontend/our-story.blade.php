@@ -39,10 +39,6 @@
 @media (max-width: 576px) {
     .story-text p { line-height: 1.55; }
 }
-.breadcrumb { background: transparent; padding: 0; margin: 0; }
-.breadcrumb-item + .breadcrumb-item::before { content: "/"; color: #6c757d; }
-.breadcrumb-item a { color: var(--primary-color, #d4af37); text-decoration: none; }
-.breadcrumb-item a:hover { color: var(--accent-color, #e8c547); }
 </style>
 @endpush
 
@@ -58,16 +54,6 @@
         </div>
     </div>
 </section>
-
-<!-- Breadcrumb -->
-<div class="container">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Our Story</li>
-        </ol>
-    </nav>
-</div>
 
 <!-- Two-column layout: single large image + text -->
 <section class="our-story-section">

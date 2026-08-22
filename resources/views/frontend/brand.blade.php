@@ -4,15 +4,6 @@
 
 @section('content')
 <div class="container my-5">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('products') }}">Products</a></li>
-            <li class="breadcrumb-item active">{{ $brand->name }}</li>
-        </ol>
-    </nav>
-
     <!-- Brand Header -->
     <div class="brand-header text-center mb-5">
         @if($brand->logo)
@@ -81,35 +72,27 @@
     </div>
     @endif
 
-    <!-- Filters and Sorting -->
+    <!-- Filters and Products -->
+    <div class="row g-4">
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="filters-sidebar">
+                @include('frontend.partials.price-range-filter')
+                <button type="button" class="btn btn-outline-secondary w-100 mt-2" id="clearBrandFilters">
+                    {{ __('Clear Price Filter') }}
+                </button>
+            </div>
+        </div>
+
+        <div class="col-lg-9 col-md-8">
     <div class="products-toolbar mb-4">
         <div class="row align-items-center">
             <div class="col-md-6">
-                <!-- Removed duplicate showing text -->
+                <p class="mb-0 text-muted small">
+                    {{ __('Showing') }} {{ $products->count() }} {{ __('of') }} {{ $products->total() }} {{ __('products') }}
+                </p>
             </div>
             <div class="col-md-6">
-                <div class="d-flex justify-content-md-end gap-3">
-                    <!-- Price Filter -->
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-filter me-2"></i>Price Range
-                        </button>
-                        <div class="dropdown-menu p-3" style="min-width: 250px;">
-                            <form id="priceFilterForm">
-                                <div class="mb-3">
-                                    <label class="form-label small">Price Range</label>
-                                    <div class="d-flex gap-2">
-                                        <input type="number" class="form-control form-control-sm" 
-                                               placeholder="Min" id="minPrice" name="min_price">
-                                        <input type="number" class="form-control form-control-sm" 
-                                               placeholder="Max" id="maxPrice" name="max_price">
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary btn-sm w-100">Apply Filter</button>
-                            </form>
-                        </div>
-                    </div>
-                    
+                <div class="d-flex justify-content-md-end gap-3 flex-wrap">
                     <!-- View Toggle -->
                     <div class="view-toggle">
                         <button class="btn btn-outline-secondary btn-sm view-btn active" data-view="grid">
@@ -169,6 +152,8 @@
                 </a>
             </div>
         @endif
+    </div>
+        </div>
     </div>
 </div>
 
@@ -343,19 +328,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Price filter functionality
-    document.getElementById('priceFilterForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const minPrice = document.getElementById('minPrice').value;
-        const maxPrice = document.getElementById('maxPrice').value;
-        
-        const url = new URL(window.location);
-        if (minPrice) url.searchParams.set('min_price', minPrice);
-        if (maxPrice) url.searchParams.set('max_price', maxPrice);
-        
+    // Price filter
+    function applyBrandFilters(extra) {
+        const url = new URL(window.location.href);
+        const params = new URLSearchParams(url.search);
+
+        ['min_price', 'max_price', 'sort', 'category'].forEach(function (key) {
+            if (extra && Object.prototype.hasOwnProperty.call(extra, key)) {
+                if (extra[key] === null || extra[key] === '') {
+                    params.delete(key);
+                } else {
+                    params.set(key, extra[key]);
+                }
+            }
+        });
+
+        url.search = params.toString();
         window.location.href = url.toString();
-    });
+    }
+
+    const applyPriceBtn = document.getElementById('applyPriceFilter');
+    if (applyPriceBtn) {
+        applyPriceBtn.addEventListener('click', function () {
+            const priceWrap = document.querySelector('[data-price-range-slider]');
+            const priceParams = window.PriceRangeFilter
+                ? window.PriceRangeFilter.getParams(priceWrap)
+                : {};
+            applyBrandFilters(priceParams);
+        });
+    }
+
+    const clearBrandFiltersBtn = document.getElementById('clearBrandFilters');
+    if (clearBrandFiltersBtn) {
+        clearBrandFiltersBtn.addEventListener('click', function () {
+            applyBrandFilters({ min_price: null, max_price: null });
+        });
+    }
     
     // Sort functionality
     const sortOptions = document.querySelectorAll('.sort-option');

@@ -9,13 +9,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h1 class="page-title mb-2">All Products</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                            <li class="breadcrumb-item active">Products</li>
-                        </ol>
-                    </nav>
+                    <h1 class="page-title mb-0">All Products</h1>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <!-- Removed duplicate product count -->
@@ -26,79 +20,34 @@
 
     <div class="container my-5">
         <div class="row">
-            <!-- Sidebar Filters -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                <div class="filters-sidebar">
-                    <div class="filter-section mb-4">
-                        <h5 class="filter-title">Categories</h5>
-                        <div class="filter-options">
-                            @foreach($categories as $category)
-                            <div class="form-check">
-                                <input class="form-check-input category-filter" type="checkbox" 
-                                       value="{{ $category->id }}" id="cat{{ $category->id }}"
-                                       {{ request('category') == $category->id ? 'checked' : '' }}>
-                                <label class="form-check-label" for="cat{{ $category->id }}">
-                                    {{ $category->name }}
-                                </label>
-                            </div>
-                            @endforeach
-                        </div>
+            <div class="col-lg-3 d-none d-lg-block mb-4">
+                <div class="filters-sidebar" id="productsFiltersSidebar">
+                    <div class="filters-sidebar__head mb-3">
+                        <h5 class="filter-title mb-0">Filters</h5>
                     </div>
-
-                    <!-- Brands filter removed per request -->
-                    <div class="filter-section mb-4" style="display:none;"></div>
-
-                    <div class="filter-section mb-4">
-                        <h5 class="filter-title">Price Range</h5>
-                        <div class="price-range">
-                            <div class="row">
-                                <div class="col-6">
-                                    <input type="number" class="form-control" id="minPrice" 
-                                           placeholder="Min" value="{{ request('min_price') }}">
-                                </div>
-                                <div class="col-6">
-                                    <input type="number" class="form-control" id="maxPrice" 
-                                           placeholder="Max" value="{{ request('max_price') }}">
-                                </div>
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm mt-2 w-100" id="applyPriceFilter">
-                                Apply Price Filter
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="filter-section mb-4">
-                        <h5 class="filter-title">Rating</h5>
-                        <div class="filter-options">
-                            @for($i = 5; $i >= 1; $i--)
-                            <div class="form-check">
-                                <input class="form-check-input rating-filter" type="radio" 
-                                       name="rating" value="{{ $i }}" id="rating{{ $i }}"
-                                       {{ request('rating') == $i ? 'checked' : '' }}>
-                                <label class="form-check-label" for="rating{{ $i }}">
-                                    @for($j = 1; $j <= $i; $j++)
-                                        <i class="fas fa-star text-warning"></i>
-                                    @endfor
-                                    @for($j = $i + 1; $j <= 5; $j++)
-                                        <i class="far fa-star text-muted"></i>
-                                    @endfor
-                                    & Up
-                                </label>
-                            </div>
-                            @endfor
-                        </div>
-                    </div>
-
-                    <button class="btn btn-outline-secondary w-100" id="clearFilters">
-                        Clear All Filters
-                    </button>
+                    @include('frontend.partials.products-filters-content', ['filterContext' => 'desktop'])
                 </div>
             </div>
 
-            <!-- Products Grid -->
-            <div class="col-lg-9 col-md-8">
-                <!-- Sort and View Options -->
-                <div class="products-toolbar d-flex justify-content-between align-items-center mb-4">
+            <div class="col-lg-9 col-md-12">
+                <div class="mobile-shop-bar d-lg-none">
+                    <button type="button" class="mobile-shop-bar__chip" data-bs-toggle="offcanvas" data-bs-target="#productsFilterSheet" aria-controls="productsFilterSheet">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>Filters</span>
+                    </button>
+                    <div class="mobile-shop-bar__sort">
+                        <select class="form-select form-select-sm" id="sortProductsMobile">
+                            <option value="name" {{ request('sort') == 'name' ? 'selected' : '' }}>Name A-Z</option>
+                            <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Name Z-A</option>
+                            <option value="price" {{ request('sort') == 'price' ? 'selected' : '' }}>Price Low to High</option>
+                            <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Price High to Low</option>
+                            <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>Highest Rated</option>
+                            <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Newest First</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="products-toolbar d-none d-lg-flex justify-content-between align-items-center mb-4">
                     <div class="view-options">
                         <button class="btn btn-outline-secondary btn-sm view-grid active" data-view="grid">
                             <i class="fas fa-th"></i>
@@ -150,6 +99,23 @@
     </div>
 </div>
 
+<div class="offcanvas offcanvas-bottom mobile-filter-sheet d-lg-none" tabindex="-1" id="productsFilterSheet" aria-labelledby="productsFilterSheetLabel">
+    <div class="mobile-filter-sheet__handle" aria-hidden="true"></div>
+    <div class="offcanvas-header mobile-filter-sheet__header">
+        <h5 class="offcanvas-title" id="productsFilterSheetLabel">Filters</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body mobile-filter-sheet__body">
+        <div class="filters-sidebar filters-sidebar--sheet" id="productsFiltersMobile">
+            @include('frontend.partials.products-filters-content', ['filterContext' => 'mobile'])
+        </div>
+    </div>
+    <div class="mobile-filter-sheet__footer">
+        <button type="button" class="btn btn-outline-secondary" id="clearFiltersMobile">Clear</button>
+        <button type="button" class="btn btn-primary" id="applyProductsFiltersMobile">Apply Filters</button>
+    </div>
+</div>
+
 <style>
 .filters-sidebar {
     background: #f8f9fa;
@@ -170,6 +136,13 @@
 .filter-options {
     max-height: 200px;
     overflow-y: auto;
+}
+
+@media (max-width: 991.98px) {
+    .mobile-filter-sheet .filter-options {
+        max-height: none;
+        overflow: visible;
+    }
 }
 
 .form-check {
@@ -249,77 +222,110 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Filter functionality
-    const categoryFilters = document.querySelectorAll('.category-filter');
-    // const brandFilters = document.querySelectorAll('.brand-filter'); // Removed
-    const ratingFilters = document.querySelectorAll('.rating-filter');
+    function getProductsFilterRoot() {
+        return window.innerWidth >= 992
+            ? document.getElementById('productsFiltersSidebar')
+            : document.getElementById('productsFiltersMobile');
+    }
+
+    function shouldAutoApplyProductsFilters() {
+        return window.innerWidth >= 992;
+    }
+
     const sortSelect = document.getElementById('sortProducts');
+    const sortSelectMobile = document.getElementById('sortProductsMobile');
     const clearFiltersBtn = document.getElementById('clearFilters');
     const applyPriceBtn = document.getElementById('applyPriceFilter');
-    
-    // Apply filters
+
     function applyFilters() {
+        const root = getProductsFilterRoot() || document;
         const url = new URL(window.location.href);
         const params = new URLSearchParams();
-        
-        // Category filters
-        const selectedCategories = Array.from(categoryFilters)
-            .filter(cb => cb.checked)
+
+        const selectedCategories = Array.from(root.querySelectorAll('.category-filter:checked'))
             .map(cb => cb.value);
         if (selectedCategories.length > 0) {
             params.set('category', selectedCategories.join(','));
         }
-        
-        // Brand filters removed
-        // const selectedBrands = Array.from(brandFilters)
-        //     .filter(cb => cb.checked)
-        //     .map(cb => cb.value);
-        // if (selectedBrands.length > 0) {
-        //     params.set('brand', selectedBrands.join(','));
-        // }
-        
-        // Rating filter
-        const selectedRating = document.querySelector('.rating-filter:checked');
+
+        const selectedRating = root.querySelector('.rating-filter:checked');
         if (selectedRating) {
             params.set('rating', selectedRating.value);
         }
-        
-        // Price range
-        const minPrice = document.getElementById('minPrice').value;
-        const maxPrice = document.getElementById('maxPrice').value;
-        if (minPrice) params.set('min_price', minPrice);
-        if (maxPrice) params.set('max_price', maxPrice);
-        
-        // Sort
-        if (sortSelect.value) {
-            params.set('sort', sortSelect.value);
+
+        const priceWrap = root.querySelector('[data-price-range-slider]');
+        const priceParams = window.PriceRangeFilter
+            ? window.PriceRangeFilter.getParams(priceWrap)
+            : { min_price: null, max_price: null };
+        if (priceParams.min_price) {
+            params.set('min_price', priceParams.min_price);
         }
-        
-        // Redirect with filters
+        if (priceParams.max_price) {
+            params.set('max_price', priceParams.max_price);
+        }
+
+        const activeSort = (window.innerWidth >= 992 ? sortSelect : sortSelectMobile);
+        if (activeSort && activeSort.value) {
+            params.set('sort', activeSort.value);
+        }
+
         url.search = params.toString();
         window.location.href = url.toString();
     }
-    
-    // Event listeners
-    categoryFilters.forEach(filter => {
-        filter.addEventListener('change', applyFilters);
-    });
-    
-    // brandFilters.forEach(filter => {
-    //     filter.addEventListener('change', applyFilters);
-    // });
-    
-    ratingFilters.forEach(filter => {
-        filter.addEventListener('change', applyFilters);
-    });
-    
-    sortSelect.addEventListener('change', applyFilters);
-    
-    applyPriceBtn.addEventListener('click', applyFilters);
-    
-    clearFiltersBtn.addEventListener('click', function() {
-        window.location.href = '{{ route("products") }}';
-    });
+
+    const desktopRoot = document.getElementById('productsFiltersSidebar');
+    if (desktopRoot) {
+        desktopRoot.querySelectorAll('.category-filter, .rating-filter').forEach(filter => {
+            filter.addEventListener('change', function () {
+                if (shouldAutoApplyProductsFilters()) {
+                    applyFilters();
+                }
+            });
+        });
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', applyFilters);
+    }
+
+    if (sortSelectMobile) {
+        sortSelectMobile.addEventListener('change', applyFilters);
+    }
+
+    if (applyPriceBtn) {
+        applyPriceBtn.addEventListener('click', applyFilters);
+    }
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', function() {
+            window.location.href = '{{ route("products") }}';
+        });
+    }
+
+    const applyMobileBtn = document.getElementById('applyProductsFiltersMobile');
+    if (applyMobileBtn) {
+        applyMobileBtn.addEventListener('click', applyFilters);
+    }
+
+    const clearMobileBtn = document.getElementById('clearFiltersMobile');
+    if (clearMobileBtn) {
+        clearMobileBtn.addEventListener('click', function() {
+            window.location.href = '{{ route("products") }}';
+        });
+    }
+
+    const productsFilterSheet = document.getElementById('productsFilterSheet');
+    if (productsFilterSheet) {
+        productsFilterSheet.addEventListener('shown.bs.offcanvas', function () {
+            if (window.PriceRangeFilter) {
+                const mobileWrap = productsFilterSheet.querySelector('[data-price-range-slider]');
+                if (mobileWrap) {
+                    window.PriceRangeFilter.init(mobileWrap);
+                    window.PriceRangeFilter.sync(mobileWrap);
+                }
+            }
+        });
+    }
     
     // View toggle
     const viewButtons = document.querySelectorAll('[data-view]');

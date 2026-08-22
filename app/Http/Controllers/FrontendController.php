@@ -231,25 +231,11 @@ class FrontendController extends Controller
         }
         
         // Price range filter
-        if ($request->has('min_price') && $request->min_price) {
-            $query->where(function($q) use ($request) {
-                $q->where('offer_price', '>=', $request->min_price)
-                  ->orWhere(function($subQ) use ($request) {
-                      $subQ->whereNull('offer_price')
-                           ->where('price', '>=', $request->min_price);
-                  });
-            });
-        }
-        
-        if ($request->has('max_price') && $request->max_price) {
-            $query->where(function($q) use ($request) {
-                $q->where('offer_price', '<=', $request->max_price)
-                  ->orWhere(function($subQ) use ($request) {
-                      $subQ->whereNull('offer_price')
-                           ->where('price', '<=', $request->max_price);
-                  });
-            });
-        }
+        $this->applyEffectivePriceFilter(
+            $query,
+            $request->input('min_price'),
+            $request->input('max_price')
+        );
         
         // Rating filter
         if ($request->has('rating') && $request->rating) {
@@ -332,11 +318,18 @@ class FrontendController extends Controller
         $products = $query->paginate(12)->withQueryString();
         $categories = Category::where('status', 1)->get();
         $brands = Brand::where('status', 1)->get();
-        
-        // Get setting for currency
         $setting = Setting::first();
-        
-        return view('frontend.products', compact('products', 'categories', 'brands', 'setting'));
+
+        $priceRangeMeta = $this->resolvePriceRangeMeta(
+            Product::where('status', 1)->where('approve_by_admin', 1)
+        );
+
+        return view('frontend.products', compact(
+            'products',
+            'categories',
+            'brands',
+            'setting'
+        ) + $priceRangeMeta);
     }
     
     public function productDetail(Request $request, $slug)
@@ -432,27 +425,11 @@ class FrontendController extends Controller
             }
         }
 
-        if (request()->filled('min_price')) {
-            $minPrice = request('min_price');
-            $query->where(function ($q) use ($minPrice) {
-                $q->where('offer_price', '>=', $minPrice)
-                    ->orWhere(function ($subQ) use ($minPrice) {
-                        $subQ->whereNull('offer_price')
-                            ->where('price', '>=', $minPrice);
-                    });
-            });
-        }
-
-        if (request()->filled('max_price')) {
-            $maxPrice = request('max_price');
-            $query->where(function ($q) use ($maxPrice) {
-                $q->where('offer_price', '<=', $maxPrice)
-                    ->orWhere(function ($subQ) use ($maxPrice) {
-                        $subQ->whereNull('offer_price')
-                            ->where('price', '<=', $maxPrice);
-                    });
-            });
-        }
+        $this->applyEffectivePriceFilter(
+            $query,
+            request('min_price'),
+            request('max_price')
+        );
 
         if (request()->filled('rating')) {
             $rating = request('rating');
@@ -515,27 +492,11 @@ class FrontendController extends Controller
             ->map(fn ($id) => (int) $id)
             ->all();
 
-        $priceBounds = Product::where('category_id', $category->id)
-            ->where('status', 1)
-            ->where('approve_by_admin', 1)
-            ->selectRaw('MIN(CAST(COALESCE(NULLIF(offer_price, ""), price) AS DECIMAL(12,2))) as floor_price, MAX(CAST(COALESCE(NULLIF(offer_price, ""), price) AS DECIMAL(12,2))) as ceil_price')
-            ->first();
-
-        $priceFloor = (int) floor($priceBounds->floor_price ?? 0);
-        $priceCeil = (int) ceil($priceBounds->ceil_price ?? 0);
-        if ($priceCeil <= $priceFloor) {
-            $priceCeil = $priceFloor + 1000;
-        }
-
-        $priceStep = max(1, (int) round(($priceCeil - $priceFloor) / 50));
-        $selectedMinPrice = request()->filled('min_price')
-            ? (int) request('min_price')
-            : $priceFloor;
-        $selectedMaxPrice = request()->filled('max_price')
-            ? (int) request('max_price')
-            : $priceCeil;
-        $selectedMinPrice = max($priceFloor, min($selectedMinPrice, $priceCeil));
-        $selectedMaxPrice = max($selectedMinPrice, min($selectedMaxPrice, $priceCeil));
+        $priceRangeMeta = $this->resolvePriceRangeMeta(
+            Product::where('category_id', $category->id)
+                ->where('status', 1)
+                ->where('approve_by_admin', 1)
+        );
 
         return view('frontend.category', compact(
             'category',
@@ -543,13 +504,8 @@ class FrontendController extends Controller
             'setting',
             'brands',
             'activeSubCategories',
-            'activeBrands',
-            'priceFloor',
-            'priceCeil',
-            'priceStep',
-            'selectedMinPrice',
-            'selectedMaxPrice'
-        ));
+            'activeBrands'
+        ) + $priceRangeMeta);
     }
     
     public function brand($slug)
@@ -567,14 +523,12 @@ class FrontendController extends Controller
             ->where('approve_by_admin', 1)
             ->with(['category', 'brand', 'reviews', 'activeVariants']);
         
-        // Apply price filter
-        if (request('min_price')) {
-            $query->where('price', '>=', request('min_price'));
-        }
-        if (request('max_price')) {
-            $query->where('price', '<=', request('max_price'));
-        }
-        
+        $this->applyEffectivePriceFilter(
+            $query,
+            request('min_price'),
+            request('max_price')
+        );
+
         // Apply category filter
         if (request('category')) {
             $query->where('category_id', request('category'));
@@ -590,10 +544,10 @@ class FrontendController extends Controller
                 $query->orderBy('name', 'desc');
                 break;
             case 'price_asc':
-                $query->orderBy('price', 'asc');
+                $query->orderByRaw('COALESCE(NULLIF(offer_price, ""), price) ASC');
                 break;
             case 'price_desc':
-                $query->orderBy('price', 'desc');
+                $query->orderByRaw('COALESCE(NULLIF(offer_price, ""), price) DESC');
                 break;
             case 'rating':
                 $query->withAvg('reviews', 'rating')->orderBy('reviews_avg_rating', 'desc');
@@ -603,11 +557,20 @@ class FrontendController extends Controller
         }
         
         $products = $query->paginate(12)->withQueryString();
-        
-        // Get setting for currency
         $setting = Setting::first();
-        
-        return view('frontend.brand', compact('brand', 'products', 'brandCategories', 'setting'));
+
+        $priceRangeMeta = $this->resolvePriceRangeMeta(
+            Product::where('brand_id', $brand->id)
+                ->where('status', 1)
+                ->where('approve_by_admin', 1)
+        );
+
+        return view('frontend.brand', compact(
+            'brand',
+            'products',
+            'brandCategories',
+            'setting'
+        ) + $priceRangeMeta);
     }
     
     public function about()
@@ -792,5 +755,50 @@ class FrontendController extends Controller
             'sslcommerz_setting',
             'bank_payment_setting'
         ));
+    }
+
+    private function applyEffectivePriceFilter($query, $minPrice = null, $maxPrice = null): void
+    {
+        if ($minPrice !== null && $minPrice !== '') {
+            $query->whereRaw(
+                'CAST(COALESCE(NULLIF(offer_price, ""), price) AS DECIMAL(12,2)) >= ?',
+                [(float) $minPrice]
+            );
+        }
+
+        if ($maxPrice !== null && $maxPrice !== '') {
+            $query->whereRaw(
+                'CAST(COALESCE(NULLIF(offer_price, ""), price) AS DECIMAL(12,2)) <= ?',
+                [(float) $maxPrice]
+            );
+        }
+    }
+
+    private function resolvePriceRangeMeta($baseQuery): array
+    {
+        $priceBounds = (clone $baseQuery)
+            ->selectRaw('MIN(CAST(COALESCE(NULLIF(offer_price, ""), price) AS DECIMAL(12,2))) as floor_price, MAX(CAST(COALESCE(NULLIF(offer_price, ""), price) AS DECIMAL(12,2))) as ceil_price')
+            ->first();
+
+        $priceFloor = (int) floor($priceBounds->floor_price ?? 0);
+        $priceCeil = (int) ceil($priceBounds->ceil_price ?? 0);
+
+        if ($priceCeil <= $priceFloor) {
+            $priceCeil = $priceFloor + 1000;
+        }
+
+        $priceStep = max(1, (int) round(($priceCeil - $priceFloor) / 50));
+
+        $selectedMinPrice = request()->filled('min_price')
+            ? (int) request('min_price')
+            : $priceFloor;
+        $selectedMaxPrice = request()->filled('max_price')
+            ? (int) request('max_price')
+            : $priceCeil;
+
+        $selectedMinPrice = max($priceFloor, min($selectedMinPrice, $priceCeil));
+        $selectedMaxPrice = max($selectedMinPrice, min($selectedMaxPrice, $priceCeil));
+
+        return compact('priceFloor', 'priceCeil', 'priceStep', 'selectedMinPrice', 'selectedMaxPrice');
     }
 }

@@ -12,13 +12,6 @@
     text-align: center;
 }
 
-.breadcrumb { background: transparent; padding: 0; margin: 0; }
-.breadcrumb-item + .breadcrumb-item::before { content: "/"; color: #6c757d; }
-.breadcrumb-item a { color: var(--primary-color, #d4af37); text-decoration: none; }
-.breadcrumb-item a:hover { color: var(--accent-color, #e8c547); }
-.breadcrumb-item.active { color: #6c757d; }
-nav[aria-label="breadcrumb"] { background: transparent; padding: 20px 0; }
-
 .faq-section { padding: 60px 0; }
 .faq-card { border: 1px solid rgba(139, 123, 168, 0.15); border-radius: 8px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); }
 .faq-card .card-header { background: rgba(255,255,255,0.9); }
@@ -39,16 +32,6 @@ nav[aria-label="breadcrumb"] { background: transparent; padding: 20px 0; }
         </div>
     </div>
 </section>
-
-<!-- Breadcrumb -->
-<div class="container">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('home') }}">{{ __('Home') }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ __('FAQ') }}</li>
-        </ol>
-    </nav>
-</div>
 
 <!-- FAQ Content -->
 <section class="faq-section">
