@@ -1115,7 +1115,7 @@
         <div class="row g-4">
             @if(isset($products) && $products->count() > 0)
                 @foreach($products->take(4) as $product)
-                <div class="col-lg-3 col-md-6 fade-in">
+                <div class="col-6 col-lg-3 col-md-6 fade-in">
                     @include('frontend.partials.product-card', ['product' => $product, 'showCategory' => false])
                 </div>
                 @endforeach
@@ -1254,7 +1254,7 @@
         <div class="row g-4">
             @if(isset($newArrivalProducts) && $newArrivalProducts->count() > 0)
                 @foreach($newArrivalProducts->take(4) as $product)
-                <div class="col-lg-3 col-md-6 fade-in">
+                <div class="col-6 col-lg-3 col-md-6 fade-in">
                     @include('frontend.partials.product-card', [
                         'product' => $product,
                         'showCategory' => false,
@@ -1370,7 +1370,7 @@
         </div>
         <div class="row g-4">
             @foreach($flashSaleProducts->take(4) as $product)
-            <div class="col-lg-3 col-md-6 fade-in">
+            <div class="col-6 col-lg-3 col-md-6 fade-in">
                 @include('frontend.partials.product-card', [
                     'product' => $product->product,
                     'showCategory' => false,

@@ -73,7 +73,7 @@
                 <div class="products-grid" id="productsContainer">
                     <div class="row" id="productsList">
                         @forelse($products as $product)
-                        <div class="col-lg-4 col-md-6 col-sm-6 mb-4 product-item">
+                        <div class="col-6 col-lg-4 col-md-6 mb-4 product-item">
                             @include('frontend.partials.product-card', ['product' => $product])
                         </div>
                         @empty

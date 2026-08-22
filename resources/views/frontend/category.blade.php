@@ -224,7 +224,7 @@ body.category-page .main-content {
         @if($products->count() > 0)
             <div class="row" id="productsGrid">
                 @foreach($products as $product)
-                <div class="col-lg-3 col-md-4 col-sm-6 mb-4 product-item">
+                <div class="col-6 col-lg-3 col-md-4 col-sm-6 mb-4 product-item">
                     @include('frontend.partials.product-card', [
                         'product' => $product,
                         'showBrand' => true,

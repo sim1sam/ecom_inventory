@@ -282,7 +282,7 @@
             <h2 class="pd-related-title">Related Products</h2>
             <div class="row g-4">
                 @foreach($relatedProducts as $relatedProduct)
-                <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="col-6 col-lg-3 col-md-4 col-sm-6">
                     @include('frontend.partials.product-card', [
                         'product' => $relatedProduct,
                         'showBrand' => true,
