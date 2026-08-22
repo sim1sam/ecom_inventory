@@ -135,9 +135,9 @@
             left: 0;
             right: 0;
             z-index: 9999 !important;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--navbar-bg-color, #ffffff);
             backdrop-filter: blur(10px);
-            box-shadow: 0 2px 15px rgba(var(--primary-rgb), 0.15);
+            box-shadow: 0 2px 15px rgba(var(--navbar-menu-rgb, var(--primary-rgb)), 0.12);
         }
         
         /* Prevent mobile action buttons from moving during menu toggle */
@@ -219,8 +219,8 @@
         }
         
         .dropdown-item:hover {
-            background: rgba(212, 175, 55, 0.1);
-            color: var(--primary-color);
+            background: rgba(var(--navbar-menu-rgb, var(--primary-rgb)), 0.1);
+            color: var(--navbar-menu-active-color, var(--primary-color));
         }
         
         /* Navbar category dropdown — open below the link */
@@ -264,7 +264,7 @@
         
         .navbar-nav > .nav-item > .nav-link,
         .navbar-nav > .nav-link {
-            color: #333 !important;
+            color: var(--navbar-menu-color, #333) !important;
             font-weight: 500;
             padding: 0.5rem 1rem;
             transition: color 0.3s ease;
@@ -274,12 +274,12 @@
         .navbar-nav > .nav-item > .nav-link.active,
         .navbar-nav > .nav-link:hover,
         .navbar-nav > .nav-link.active {
-            color: var(--primary-color) !important;
+            color: var(--navbar-menu-active-color, var(--primary-color)) !important;
         }
         
         /* Default dropdown item active state */
         .dropdown-item.active {
-            color: var(--primary-color) !important;
+            color: var(--navbar-menu-active-color, var(--primary-color)) !important;
             background-color: transparent !important;
         }
         
@@ -925,7 +925,7 @@
         @endif
         
         <!-- Main Header with Navigation in One Line -->
-        <div class="main-header bg-white shadow-sm">
+        <div class="main-header shadow-sm">
             <div class="container">
                 <nav class="navbar navbar-expand-lg navbar-light py-3">
                     <!-- Logo Section -->

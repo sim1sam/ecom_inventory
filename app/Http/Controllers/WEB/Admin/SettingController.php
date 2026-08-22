@@ -116,6 +116,9 @@ class SettingController extends Controller
         $setting->theme_one = $request->theme_one;
         $setting->theme_two = $request->theme_two;
         $setting->background_color = $request->background_color;
+        $setting->navbar_menu_color = $request->navbar_menu_color;
+        $setting->navbar_menu_active_color = $request->navbar_menu_active_color;
+        $setting->navbar_bg_color = $request->navbar_bg_color;
         $setting->save();
 
         $notification = trans('admin_validation.Update Successfully');

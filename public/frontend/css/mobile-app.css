@@ -409,7 +409,7 @@
         border-radius: 14px;
         background: #fff;
         border: 1px solid var(--border-color, #E5E3EB);
-        color: var(--text-dark, #2D2A3A);
+        color: var(--navbar-menu-color, var(--text-dark, #2D2A3A));
         text-decoration: none;
         font-size: 0.74rem;
         font-weight: 600;
@@ -418,9 +418,9 @@
     }
 
     .mobile-app-menu__tile.is-active {
-        border-color: var(--primary-color, #8B7BA8);
-        box-shadow: 0 4px 16px rgba(var(--primary-rgb), 0.15);
-        color: var(--primary-color, #8B7BA8);
+        border-color: var(--navbar-menu-active-color, var(--primary-color, #8B7BA8));
+        box-shadow: 0 4px 16px rgba(var(--navbar-menu-rgb, var(--primary-rgb)), 0.15);
+        color: var(--navbar-menu-active-color, var(--primary-color, #8B7BA8));
     }
 
     .mobile-app-menu__tile-icon {
@@ -430,8 +430,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: rgba(var(--primary-rgb), 0.1);
-        color: var(--primary-color, #8B7BA8);
+        background: rgba(var(--navbar-menu-rgb, var(--primary-rgb)), 0.1);
+        color: var(--navbar-menu-active-color, var(--primary-color, #8B7BA8));
         font-size: 1rem;
     }
 
@@ -577,10 +577,10 @@
         z-index: 9990;
         height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
         padding-bottom: env(safe-area-inset-bottom, 0px);
-        background: rgba(255, 255, 255, 0.96);
+        background: var(--navbar-bg-color, rgba(255, 255, 255, 0.96));
         backdrop-filter: blur(12px);
         border-top: 1px solid var(--border-color, #E5E3EB);
-        box-shadow: 0 -4px 24px rgba(74, 74, 92, 0.08);
+        box-shadow: 0 -4px 24px rgba(var(--navbar-menu-rgb, 74, 74, 92), 0.08);
     }
 
     .mobile-bottom-nav__inner {
@@ -597,7 +597,7 @@
         justify-content: center;
         gap: 0.15rem;
         padding: 0.35rem 0.15rem;
-        color: var(--text-light, #8B8B9A);
+        color: var(--navbar-menu-color, var(--text-light, #8B8B9A));
         text-decoration: none;
         font-size: 0.62rem;
         font-weight: 600;
@@ -614,7 +614,7 @@
     }
 
     .mobile-tab.is-active {
-        color: var(--primary-color, #8B7BA8);
+        color: var(--navbar-menu-active-color, var(--primary-color, #8B7BA8));
     }
 
     .mobile-tab.is-active::before {
@@ -626,7 +626,7 @@
         width: 28px;
         height: 3px;
         border-radius: 0 0 4px 4px;
-        background: var(--primary-color, #8B7BA8);
+        background: var(--navbar-menu-active-color, var(--primary-color, #8B7BA8));
     }
 
     .mobile-tab__badge {

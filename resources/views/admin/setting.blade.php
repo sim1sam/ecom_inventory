@@ -675,6 +675,27 @@
                                                                 <small class="text-muted">{{ __('Main site background tint. Accent shades are auto-generated from primary color.') }}</small>
                                                             </div>
 
+                                                            <hr>
+                                                            <h6 class="mb-3">{{ __('Navbar menu colors') }}</h6>
+
+                                                            <div class="form-group">
+                                                                <label for="">{{__('Navbar background color')}}</label>
+                                                                <input type="color" class="form-control" name="navbar_bg_color" value="{{ $setting->navbar_bg_color ?? '#FFFFFF' }}">
+                                                                <small class="text-muted">{{ __('Top header / navbar background.') }}</small>
+                                                            </div>
+
+                                                            <div class="form-group">
+                                                                <label for="">{{__('Navbar menu text color')}}</label>
+                                                                <input type="color" class="form-control" name="navbar_menu_color" value="{{ $setting->navbar_menu_color ?? '#333333' }}">
+                                                                <small class="text-muted">{{ __('Default color for menu links (Home, Products, etc.).') }}</small>
+                                                            </div>
+
+                                                            <div class="form-group">
+                                                                <label for="">{{__('Navbar menu active color')}}</label>
+                                                                <input type="color" class="form-control" name="navbar_menu_active_color" value="{{ $setting->navbar_menu_active_color ?? $setting->theme_one }}">
+                                                                <small class="text-muted">{{ __('Hover and active menu link color.') }}</small>
+                                                            </div>
+
                                                             <button class="btn btn-primary">{{__('admin.Update')}}</button>
                                                         </form>
                                                     </div>

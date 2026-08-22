@@ -15,6 +15,10 @@ class ThemeHelper
         $background = self::normalizeHex($setting->background_color ?? null, $secondary);
         $statisticsBg = self::normalizeHex($setting->statistics_color ?? null, '#2c3e50');
         $statisticsFont = self::normalizeHex($setting->statistics_font_color ?? null, '#ffffff');
+        $navbarMenu = self::normalizeHex($setting->navbar_menu_color ?? null, '#333333');
+        $navbarMenuActive = self::normalizeHex($setting->navbar_menu_active_color ?? null, $primary);
+        $navbarBg = self::normalizeHex($setting->navbar_bg_color ?? null, '#FFFFFF');
+        $navbarMenuRgb = self::hexToRgbString($navbarMenuActive);
 
         $accent = self::adjustHex($primary, 18);
         $textDark = self::mixHex($primary, '#2D2A3A', 0.72);
@@ -40,6 +44,10 @@ class ThemeHelper
             'primary_rgb' => $primaryRgb,
             'statistics_color' => $statisticsBg,
             'statistics_font_color' => $statisticsFont,
+            'navbar_menu_color' => $navbarMenu,
+            'navbar_menu_active_color' => $navbarMenuActive,
+            'navbar_bg_color' => $navbarBg,
+            'navbar_menu_rgb' => $navbarMenuRgb,
             'gradient_bg' => sprintf(
                 'linear-gradient(135deg, %s 0%%, %s 50%%, %s 100%%)',
                 $background,

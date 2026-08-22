@@ -24,6 +24,10 @@
         --primary-rgb: {{ $theme['primary_rgb'] }};
         --statistics-color: {{ $theme['statistics_color'] }};
         --statistics-font-color: {{ $theme['statistics_font_color'] }};
+        --navbar-menu-color: {{ $theme['navbar_menu_color'] }};
+        --navbar-menu-active-color: {{ $theme['navbar_menu_active_color'] }};
+        --navbar-bg-color: {{ $theme['navbar_bg_color'] }};
+        --navbar-menu-rgb: {{ $theme['navbar_menu_rgb'] }};
         --footer-color: {{ $footerColor }};
         --transition: all 0.3s ease;
     }
