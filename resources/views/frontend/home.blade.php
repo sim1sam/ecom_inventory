@@ -1116,104 +1116,59 @@
 <!-- Services Section moved to bottom -->
 
 <!-- Banner Section -->
-@if(isset($bannerImages) && $bannerImages->count() > 0)
-<section class="py-5" style="background-color: #f8f9fa;">
+<section class="home-promo-section">
     <div class="container">
-        <div class="row g-4">
-            @foreach($bannerImages->take(4) as $index => $banner)
-            <div class="col-lg-6 col-md-6">
-                <div class="banner-card position-relative overflow-hidden rounded-4" style="height: 350px; transition: all 0.3s ease;">
-                    <img src="{{ asset($banner->image) }}" alt="{{ $banner->title_one ?? 'Banner' }}" class="w-100 h-100" style="object-fit: cover; object-position: center;">
-                    @if($banner->product_slug)
-                    <a href="{{ route('category', $banner->product_slug) }}" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-end text-decoration-none">
-                        <div class="text-end px-4 me-4" style="color: #000;">
-                            @if($banner->title_one)
-                            <h3 class="fw-bold mb-3" style="font-size: 2.2rem; color: #000; line-height: 1.2;">{{ $banner->title_one }}</h3>
-                            @endif
-                            @if($banner->title_two)
-                            <p class="mb-4" style="font-size: 1.1rem; color: #000;">{{ $banner->title_two }}</p>
-                            @endif
-                            <span class="btn btn-primary btn-lg px-4 py-2" style="font-weight: 600; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">Shop Now</span>
-                        </div>
-                    </a>
-                    @elseif($banner->link && !str_contains($banner->link, 'shopo-ecom.vercel.app'))
-                    <a href="{{ url($banner->link) }}" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-end text-decoration-none">
-                        <div class="text-end px-4 me-4" style="color: #000;">
-                            @if($banner->title_one)
-                            <h3 class="fw-bold mb-3" style="font-size: 2.2rem; color: #000; line-height: 1.2;">{{ $banner->title_one }}</h3>
-                            @endif
-                            @if($banner->title_two)
-                            <p class="mb-4" style="font-size: 1.1rem; color: #000;">{{ $banner->title_two }}</p>
-                            @endif
-                            <span class="btn btn-primary btn-lg px-4 py-2" style="font-weight: 600; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">View Product</span>
-                        </div>
-                    </a>
-                    @else
-                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-end">
-                        <div class="text-end px-4 me-4" style="color: #000;">
-                            @if($banner->title_one)
-                            <h3 class="fw-bold mb-3" style="font-size: 2.2rem; color: #000; line-height: 1.2;">{{ $banner->title_one }}</h3>
-                            @endif
-                            @if($banner->title_two)
-                            <p class="mb-0" style="font-size: 1.1rem; color: #000;">{{ $banner->title_two }}</p>
-                            @endif
-                        </div>
-                    </div>
-                    @endif
-                </div>
-            </div>
-            @endforeach
+        <div class="home-promo-grid">
+            @if(isset($bannerImages) && $bannerImages->count() > 0)
+                @foreach($bannerImages->take(4) as $banner)
+                    @php
+                        $bannerUrl = route('products');
+                        $bannerCta = __('Shop Now');
+
+                        if ($banner->product_slug) {
+                            $bannerUrl = route('category', $banner->product_slug);
+                        } elseif ($banner->link && !str_contains($banner->link, 'shopo-ecom.vercel.app')) {
+                            $bannerUrl = url($banner->link);
+                            $bannerCta = __('View Collection');
+                        }
+                    @endphp
+                    @include('frontend.partials.home-promo-card', [
+                        'image' => asset($banner->image),
+                        'title' => $banner->title_one,
+                        'subtitle' => $banner->title_two,
+                        'url' => $bannerUrl,
+                        'cta' => $bannerCta,
+                    ])
+                @endforeach
+            @else
+                @include('frontend.partials.home-promo-card', [
+                    'image' => asset('frontend/images/banner-1.jpg'),
+                    'title' => __('New Arrivals'),
+                    'subtitle' => __('Latest jewellery collection'),
+                    'url' => route('products', ['filter' => 'new']),
+                ])
+                @include('frontend.partials.home-promo-card', [
+                    'image' => asset('frontend/images/banner-2.jpg'),
+                    'title' => __('Best Sellers'),
+                    'subtitle' => __('Most popular items'),
+                    'url' => route('products', ['filter' => 'top']),
+                ])
+                @include('frontend.partials.home-promo-card', [
+                    'image' => asset('frontend/images/banner-3.jpg'),
+                    'title' => __('Special Offers'),
+                    'subtitle' => __('Up to 50% off'),
+                    'url' => route('products', ['filter' => 'flash_sale']),
+                ])
+                @include('frontend.partials.home-promo-card', [
+                    'image' => asset('frontend/images/banner-4.jpg'),
+                    'title' => __('Premium Collection'),
+                    'subtitle' => __('Luxury jewellery pieces'),
+                    'url' => route('products'),
+                ])
+            @endif
         </div>
     </div>
 </section>
-@else
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row g-4">
-            <div class="col-lg-6 col-md-6">
-                <div class="banner-card h-100 overflow-hidden rounded-3 shadow-sm position-relative" style="height: 250px; background-image: url('{{ asset('frontend/images/banner-1.jpg') }}'); background-size: cover; background-position: center;">
-                    <a href="{{ route('products') }}?filter=new" class="d-block w-100 h-100 position-relative text-decoration-none">
-                        <div class="position-absolute top-50 end-0 translate-middle-y p-4" style="right: 20px !important;">
-                            <h5 class="fw-bold mb-2 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">New Arrivals</h5>
-                            <p class="mb-0 text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">Latest jewellery collection</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6">
-                <div class="banner-card h-100 overflow-hidden rounded-3 shadow-sm position-relative" style="height: 250px; background-image: url('{{ asset('frontend/images/banner-2.jpg') }}'); background-size: cover; background-position: center;">
-                    <a href="{{ route('products') }}?filter=popular" class="d-block w-100 h-100 position-relative text-decoration-none">
-                        <div class="position-absolute top-50 end-0 translate-middle-y p-4" style="right: 20px !important;">
-                            <h5 class="fw-bold mb-2 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">Best Sellers</h5>
-                            <p class="mb-0 text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">Most popular items</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6">
-                <div class="banner-card h-100 overflow-hidden rounded-3 shadow-sm position-relative" style="height: 250px; background-image: url('{{ asset('frontend/images/banner-3.jpg') }}'); background-size: cover; background-position: center;">
-                    <a href="{{ route('products') }}?filter=sale" class="d-block w-100 h-100 position-relative text-decoration-none">
-                        <div class="position-absolute top-50 end-0 translate-middle-y p-4" style="right: 20px !important;">
-                            <h5 class="fw-bold mb-2 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">Special Offers</h5>
-                            <p class="mb-0 text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">Up to 50% off</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-6">
-                <div class="banner-card h-100 overflow-hidden rounded-3 shadow-sm position-relative" style="height: 250px; background-image: url('{{ asset('frontend/images/banner-4.jpg') }}'); background-size: cover; background-position: center;">
-                    <a href="{{ route('products') }}?filter=premium" class="d-block w-100 h-100 position-relative text-decoration-none">
-                        <div class="position-absolute top-50 end-0 translate-middle-y p-4" style="right: 20px !important;">
-                            <h5 class="fw-bold mb-2 text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">Premium Collection</h5>
-                            <p class="mb-0 text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">Luxury Jewellery pieces</p>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-@endif
 
 <!-- Our Products -->
 <section class="section-padding bg-light">
@@ -1242,78 +1197,50 @@
 </section>
 
 <!-- Our Collections (Categories) -->
-<section class="section-padding bg-light">
+<section class="home-categories-section">
     <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <h2 class="section-title fade-in">Featured Collections</h2>
-                <p class="section-subtitle fade-in">Explore our carefully curated jewellery collections</p>
-            </div>
+        <div class="home-section-head">
+            <h2 class="section-title fade-in">{{ __('Featured Collections') }}</h2>
+            <p class="section-subtitle fade-in">{{ __('Explore our carefully curated jewellery collections') }}</p>
         </div>
-        <div class="row g-4">
-            @if(isset($featuredCategories) && $featuredCategories->count() > 0)
-                @foreach($featuredCategories->take(8) as $featuredCategory)
-                    @if($featuredCategory->category)
-                    <div class="col-lg-3 col-md-6">
-                        <a href="{{ route('category', $featuredCategory->category->slug) }}" class="category-card category-card-link fade-in">
-                            <div class="category-image" style="height: 100%; overflow: hidden;">
-                                <img src="{{ $featuredCategory->category->image ? asset($featuredCategory->category->image) : asset('frontend/images/category-placeholder.jpg') }}" alt="{{ $featuredCategory->category->name }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
-                                <div class="category-overlay">
-                                    <h4 class="category-title">{{ $featuredCategory->category->name }}</h4>
-                                    <span class="btn btn-primary">Shop Now</span>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                    @endif
+
+        @php
+            $homeCategories = collect();
+
+            if (isset($featuredCategories) && $featuredCategories->count() > 0) {
+                $homeCategories = $featuredCategories
+                    ->map(fn ($featuredCategory) => $featuredCategory->category)
+                    ->filter();
+            }
+
+            if ($homeCategories->isEmpty() && isset($categories) && $categories->count() > 0) {
+                $homeCategories = $categories;
+            }
+        @endphp
+
+        <div class="home-category-grid">
+            @forelse($homeCategories->take(8) as $category)
+                @include('frontend.partials.home-category-card', ['category' => $category])
+            @empty
+                @php
+                    $fallbackCategories = [
+                        ['name' => 'Rings', 'slug' => 'rings', 'image' => 'frontend/images/rings.jpg'],
+                        ['name' => 'Necklaces', 'slug' => 'necklaces', 'image' => 'frontend/images/necklaces.jpg'],
+                        ['name' => 'Earrings', 'slug' => 'earrings', 'image' => 'frontend/images/earrings.jpg'],
+                        ['name' => 'Bracelets', 'slug' => 'bracelets', 'image' => 'frontend/images/bracelets.jpg'],
+                    ];
+                @endphp
+                @foreach($fallbackCategories as $fallback)
+                    @php
+                        $category = (object) [
+                            'name' => $fallback['name'],
+                            'slug' => $fallback['slug'],
+                            'image' => $fallback['image'],
+                        ];
+                    @endphp
+                    @include('frontend.partials.home-category-card', ['category' => $category])
                 @endforeach
-            @else
-                <!-- Default categories if no dynamic categories -->
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ route('products') }}" class="category-card category-card-link fade-in">
-                        <div class="category-image" style="height: 100%; overflow: hidden;">
-                            <img src="{{ asset('frontend/images/rings.jpg') }}" alt="Rings" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
-                            <div class="category-overlay">
-                                <h4 class="category-title">Rings</h4>
-                                <span class="btn btn-primary">Shop Now</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ route('products') }}" class="category-card category-card-link fade-in">
-                        <div class="category-image" style="height: 100%; overflow: hidden;">
-                            <img src="{{ asset('frontend/images/necklaces.jpg') }}" alt="Necklaces" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
-                            <div class="category-overlay">
-                                <h4 class="category-title">Necklaces</h4>
-                                <span class="btn btn-primary">Shop Now</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ route('products') }}" class="category-card category-card-link fade-in">
-                        <div class="category-image" style="height: 100%; overflow: hidden;">
-                            <img src="{{ asset('frontend/images/earrings.jpg') }}" alt="Earrings" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
-                            <div class="category-overlay">
-                                <h4 class="category-title">Earrings</h4>
-                                <span class="btn btn-primary">Shop Now</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ route('products') }}" class="category-card category-card-link fade-in">
-                        <div class="category-image" style="height: 100%; overflow: hidden;">
-                            <img src="{{ asset('frontend/images/bracelets.jpg') }}" alt="Bracelets" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
-                            <div class="category-overlay">
-                                <h4 class="category-title">Bracelets</h4>
-                                <span class="btn btn-primary">Shop Now</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            @endif
+            @endforelse
         </div>
     </div>
 </section>

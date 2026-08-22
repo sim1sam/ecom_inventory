@@ -59,8 +59,9 @@ class FrontendController extends Controller
             ->get();
         
         // Categories (check visibility setting)
-        $categories = Category::with('products')
-            ->withCount('products')
+        $categories = Category::withCount(['products' => function ($query) {
+                $query->where('status', 1)->where('approve_by_admin', 1);
+            }])
             ->where('status', 1);
         
         if ($homePageVisibility && $homePageVisibility->category_section_status) {
@@ -75,8 +76,10 @@ class FrontendController extends Controller
             ->get();
             
         // Featured Categories
-        $featuredCategories = FeaturedCategory::with(['category.products' => function($query) {
-            $query->where('status', 1)->where('approve_by_admin', 1);
+        $featuredCategories = FeaturedCategory::with(['category' => function ($query) {
+            $query->withCount(['products' => function ($productQuery) {
+                $productQuery->where('status', 1)->where('approve_by_admin', 1);
+            }]);
         }])->get();
             
         // Top Products for "Our Products" section - Show last 8 highlighted/top products

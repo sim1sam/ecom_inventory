@@ -2402,3 +2402,265 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Removed conflicting dropdown CSS - handled in individual pages */
+
+/* Home — promo banners (4-up grid) */
+.home-promo-section,
+.home-categories-section {
+    padding: 3.5rem 0;
+}
+
+.home-promo-section {
+    background: var(--bg-light, #F7F6FA);
+}
+
+.home-categories-section {
+    background: #fff;
+}
+
+.home-section-head {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.home-section-head .section-title {
+    margin-bottom: 0.65rem;
+    font-size: clamp(1.75rem, 3vw, 2.35rem);
+}
+
+.home-section-head .section-subtitle {
+    margin-bottom: 0;
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.home-promo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.home-promo-card {
+    position: relative;
+    display: block;
+    min-height: 240px;
+    border-radius: 18px;
+    overflow: hidden;
+    text-decoration: none;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 28px rgba(74, 74, 92, 0.12);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.home-promo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 36px rgba(74, 74, 92, 0.18);
+    color: #fff;
+}
+
+.home-promo-card__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s ease;
+}
+
+.home-promo-card:hover .home-promo-card__img {
+    transform: scale(1.06);
+}
+
+.home-promo-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(20, 16, 30, 0.08) 0%, rgba(20, 16, 30, 0.72) 100%);
+}
+
+.home-promo-card__content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 240px;
+    height: 100%;
+    padding: 1.25rem;
+}
+
+.home-promo-card__title {
+    margin: 0 0 0.35rem;
+    font-size: clamp(1.15rem, 2vw, 1.65rem);
+    font-weight: 700;
+    line-height: 1.25;
+    color: #fff;
+}
+
+.home-promo-card__subtitle {
+    margin: 0 0 0.85rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.home-promo-card__cta {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--text-dark, #2D2A3A);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.home-promo-card:hover .home-promo-card__cta {
+    background: var(--primary-color, #8B7BA8);
+    color: #fff;
+}
+
+/* Home — category cards */
+.home-category-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.home-category-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--border-color, #E5E3EB);
+    box-shadow: 0 4px 20px rgba(74, 74, 92, 0.06);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.home-category-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(139, 123, 168, 0.35);
+    box-shadow: 0 12px 32px rgba(139, 123, 168, 0.15);
+    color: inherit;
+}
+
+.home-category-card__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--bg-light, #F7F6FA);
+}
+
+.home-category-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.home-category-card:hover .home-category-card__img {
+    transform: scale(1.06);
+}
+
+.home-category-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.9rem 1rem 1rem;
+}
+
+.home-category-card__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark, #2D2A3A);
+    line-height: 1.3;
+}
+
+.home-category-card__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-color, #8B7BA8);
+}
+
+.home-category-card__action i {
+    font-size: 0.72rem;
+    transition: transform 0.2s ease;
+}
+
+.home-category-card:hover .home-category-card__action i {
+    transform: translateX(3px);
+}
+
+@media (max-width: 991.98px) {
+    .home-promo-section,
+    .home-categories-section {
+        padding: 2.5rem 0;
+    }
+
+    .home-category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .home-promo-card,
+    .home-promo-card__content {
+        min-height: 190px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .home-promo-grid {
+        gap: 0.65rem;
+    }
+
+    .home-promo-card,
+    .home-promo-card__content {
+        min-height: 155px;
+    }
+
+    .home-promo-card__content {
+        padding: 0.85rem;
+    }
+
+    .home-promo-card__title {
+        font-size: 0.95rem;
+    }
+
+    .home-promo-card__subtitle {
+        font-size: 0.78rem;
+        margin-bottom: 0.55rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .home-promo-card__cta {
+        font-size: 0.68rem;
+        padding: 0.35rem 0.65rem;
+    }
+
+    .home-category-card__body {
+        padding: 0.75rem 0.8rem 0.85rem;
+    }
+
+    .home-category-card__title {
+        font-size: 0.88rem;
+    }
+
+    .home-category-card__action {
+        font-size: 0.72rem;
+    }
+}
