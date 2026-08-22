@@ -405,17 +405,70 @@ class FrontendController extends Controller
     
     public function category($slug)
     {
-        $category = Category::with(['subCategories' => function($query) {
+        $category = Category::with(['subCategories' => function ($query) {
             $query->where('status', 1)->with('products');
         }])->where('slug', $slug)->firstOrFail();
-        
-        // Build query for products
+
         $query = Product::where('category_id', $category->id)
             ->where('status', 1)
             ->where('approve_by_admin', 1)
             ->with(['category', 'brand', 'reviews']);
-        
-        // Apply sorting
+
+        if (request()->filled('sub_category')) {
+            $subIds = array_map('intval', array_filter(explode(',', request('sub_category'))));
+            $validSubIds = $category->subCategories->whereIn('id', $subIds)->pluck('id')->all();
+            if (!empty($validSubIds)) {
+                $query->whereIn('sub_category_id', $validSubIds);
+            }
+        }
+
+        if (request()->filled('brand')) {
+            $brandIds = array_map('intval', array_filter(explode(',', request('brand'))));
+            if (!empty($brandIds)) {
+                $query->whereIn('brand_id', $brandIds);
+            }
+        }
+
+        if (request()->filled('min_price')) {
+            $minPrice = request('min_price');
+            $query->where(function ($q) use ($minPrice) {
+                $q->where('offer_price', '>=', $minPrice)
+                    ->orWhere(function ($subQ) use ($minPrice) {
+                        $subQ->whereNull('offer_price')
+                            ->where('price', '>=', $minPrice);
+                    });
+            });
+        }
+
+        if (request()->filled('max_price')) {
+            $maxPrice = request('max_price');
+            $query->where(function ($q) use ($maxPrice) {
+                $q->where('offer_price', '<=', $maxPrice)
+                    ->orWhere(function ($subQ) use ($maxPrice) {
+                        $subQ->whereNull('offer_price')
+                            ->where('price', '<=', $maxPrice);
+                    });
+            });
+        }
+
+        if (request()->filled('rating')) {
+            $rating = request('rating');
+            $query->whereHas('reviews', function ($q) use ($rating) {
+                $q->selectRaw('product_id, AVG(rating) as avg_rating')
+                    ->groupBy('product_id')
+                    ->havingRaw('AVG(rating) >= ?', [$rating]);
+            });
+        }
+
+        if (request()->filled('search')) {
+            $search = request('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('short_description', 'LIKE', "%{$search}%")
+                    ->orWhere('tags', 'LIKE', "%{$search}%");
+            });
+        }
+
         $sort = request('sort', 'newest');
         switch ($sort) {
             case 'name_asc':
@@ -425,10 +478,10 @@ class FrontendController extends Controller
                 $query->orderBy('name', 'desc');
                 break;
             case 'price_asc':
-                $query->orderBy('price', 'asc');
+                $query->orderByRaw('COALESCE(NULLIF(offer_price, ""), price) ASC');
                 break;
             case 'price_desc':
-                $query->orderBy('price', 'desc');
+                $query->orderByRaw('COALESCE(NULLIF(offer_price, ""), price) DESC');
                 break;
             case 'rating':
                 $query->withAvg('reviews', 'rating')->orderBy('reviews_avg_rating', 'desc');
@@ -436,13 +489,64 @@ class FrontendController extends Controller
             default:
                 $query->latest();
         }
-        
+
         $products = $query->paginate(12)->withQueryString();
-        
-        // Get setting for currency
         $setting = Setting::first();
-        
-        return view('frontend.category', compact('category', 'products', 'setting'));
+
+        $brands = Brand::where('status', 1)
+            ->whereHas('products', function ($q) use ($category) {
+                $q->where('category_id', $category->id)
+                    ->where('status', 1)
+                    ->where('approve_by_admin', 1);
+            })
+            ->orderBy('name')
+            ->get();
+
+        $activeSubCategories = collect(explode(',', (string) request('sub_category', '')))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $activeBrands = collect(explode(',', (string) request('brand', '')))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $priceBounds = Product::where('category_id', $category->id)
+            ->where('status', 1)
+            ->where('approve_by_admin', 1)
+            ->selectRaw('MIN(CAST(COALESCE(NULLIF(offer_price, ""), price) AS DECIMAL(12,2))) as floor_price, MAX(CAST(COALESCE(NULLIF(offer_price, ""), price) AS DECIMAL(12,2))) as ceil_price')
+            ->first();
+
+        $priceFloor = (int) floor($priceBounds->floor_price ?? 0);
+        $priceCeil = (int) ceil($priceBounds->ceil_price ?? 0);
+        if ($priceCeil <= $priceFloor) {
+            $priceCeil = $priceFloor + 1000;
+        }
+
+        $priceStep = max(1, (int) round(($priceCeil - $priceFloor) / 50));
+        $selectedMinPrice = request()->filled('min_price')
+            ? (int) request('min_price')
+            : $priceFloor;
+        $selectedMaxPrice = request()->filled('max_price')
+            ? (int) request('max_price')
+            : $priceCeil;
+        $selectedMinPrice = max($priceFloor, min($selectedMinPrice, $priceCeil));
+        $selectedMaxPrice = max($selectedMinPrice, min($selectedMaxPrice, $priceCeil));
+
+        return view('frontend.category', compact(
+            'category',
+            'products',
+            'setting',
+            'brands',
+            'activeSubCategories',
+            'activeBrands',
+            'priceFloor',
+            'priceCeil',
+            'priceStep',
+            'selectedMinPrice',
+            'selectedMaxPrice'
+        ));
     }
     
     public function brand($slug)

@@ -7,14 +7,19 @@
     $subTotal = 0;
 @endphp
 
-<div class="delivery-information-top-item-two-main" id="posCartItems">
+<div class="pos-cart-head">
+    <span>{{ __('Item') }}</span>
+    <span>{{ __('QTY') }}</span>
+    <span>{{ __('Price') }}</span>
+    <span>{{ __('Action') }}</span>
+</div>
+
+<div class="pos-cart-items-wrap" id="posCartItems">
     @forelse ($cart_products as $index => $product)
-        <div class="delivery-information-top-item-two">
-            <div class="delivery-information-top-item-two-img">
-                <img src="{{ asset($product->card_product->thumb_image) }}" width="50px" height="50px" alt="img">
-                <div class="text">
-                    <p>{{ $product->card_product->name }}</p>
-                </div>
+        <div class="pos-cart-item delivery-information-top-item-two">
+            <div class="pos-cart-item__info delivery-information-top-item-two-img">
+                <img src="{{ asset($product->card_product->thumb_image) }}" alt="">
+                <p class="pos-cart-item__name">{{ $product->card_product->name }}</p>
             </div>
 
             <div class="count">
@@ -80,7 +85,7 @@
             </div>
         </div>
     @empty
-        <div class="p-3 text-center text-muted">{{ __('admin.No items in cart') }}</div>
+        <div class="pos-cart-empty">{{ __('admin.No items in cart') }}</div>
     @endforelse
 </div>
 
@@ -92,24 +97,26 @@
     </form>
 </div>
 
-<div class="sub-total" id="posSubTotalBlock">
-    <div class="sub-total-item">
-        <h6>{{ __('admin.Sub total :') }}</h6>
-        <h6>{{ __('admin.Discount :') }}</h6>
-        <h6>{{ __('admin.Tax :') }}</h6>
+<div class="pos-totals">
+    <div class="sub-total" id="posSubTotalBlock">
+        <div class="sub-total-item">
+            <h6>{{ __('admin.Sub total :') }}</h6>
+            <h6>{{ __('admin.Discount :') }}</h6>
+            <h6>{{ __('admin.Tax :') }}</h6>
+        </div>
+        <div class="sub-total-inner">
+            <h6>{{ $setting->currency_icon }}{{ $grandTotal == 0 ? 0 : $grandTotal }}</h6>
+            <h6>{{ $setting->currency_icon }}{{ $grandTotal == 0 ? 0 : $discount }}</h6>
+            <h6>{{ $setting->currency_icon }}{{ $grandTotal == 0 ? 0 : $tax }}</h6>
+        </div>
     </div>
-    <div class="sub-total-inner">
-        <h6>{{ $setting->currency_icon }}{{ $grandTotal == 0 ? 0 : $grandTotal }}</h6>
-        <h6>{{ $setting->currency_icon }}{{ $grandTotal == 0 ? 0 : $discount }}</h6>
-        <h6>{{ $setting->currency_icon }}{{ $grandTotal == 0 ? 0 : $tax }}</h6>
-    </div>
-</div>
 
-<div class="sub-total-btm" id="posGrandTotalBlock">
-    <div class="sub-total-btm-item">
-        <h6>{{ __('admin.Sub total :') }}</h6>
-    </div>
-    <div class="sub-total-btm-inner">
-        <h6>{{ $setting->currency_icon }}{{ $grandTotal == 0 ? 0 : $subTotal }}</h6>
+    <div class="sub-total-btm" id="posGrandTotalBlock">
+        <div class="sub-total-btm-item">
+            <h6>{{ __('admin.Sub total :') }}</h6>
+        </div>
+        <div class="sub-total-btm-inner">
+            <h6>{{ $setting->currency_icon }}{{ $grandTotal == 0 ? 0 : $subTotal }}</h6>
+        </div>
     </div>
 </div>

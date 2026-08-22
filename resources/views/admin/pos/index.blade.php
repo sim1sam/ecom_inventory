@@ -8,111 +8,53 @@
     rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('backend/pos/assets/css/style.css') }}">
 <link rel="stylesheet" href="{{ asset('backend/pos/assets/css/respondive.css') }}">
+<link rel="stylesheet" href="{{ asset('backend/pos/assets/css/pos-modern.css') }}">
 <style>
-    .pos-customer-bar {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        width: 100%;
-    }
-    .pos-customer-search-wrap {
-        flex: 1;
-        min-width: 0;
-        position: relative;
-    }
+    .pos-customer-bar { display: flex; gap: 10px; align-items: stretch; width: 100%; }
+    .pos-customer-search-wrap { flex: 1; min-width: 0; position: relative; }
     .pos-customer-search-wrap .form-control {
         width: 100%;
-        height: 48px;
-        border-radius: 8px;
-        border: 0;
-        padding: 0 14px;
-    }
-    .pos-customer-bar .billing-btn-three .btn {
-        width: auto !important;
-        min-width: 130px;
-        height: 48px;
-        white-space: nowrap;
-        padding: 0 16px;
-        line-height: 46px;
-    }
-    .pos-customer-results {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: calc(100% + 4px);
-        background: #fff;
-        color: #232532;
-        z-index: 40;
-        max-height: 240px;
-        overflow: auto;
-        border-radius: 8px;
-        box-shadow: 0 10px 24px rgba(0,0,0,.18);
-        display: none;
-    }
-    .pos-customer-results .item {
-        padding: 10px 12px;
-        cursor: pointer;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    .pos-customer-results .item:last-child {
-        border-bottom: 0;
-    }
-    .pos-customer-results .item:hover {
-        background: #f7eef6;
-    }
-    .pos-customer-results .item small {
-        display: block;
-        color: #6b6b6b;
-        font-size: 12px;
-    }
-    .pos-customer-results .no-result {
-        cursor: default;
-        color: #888;
-    }
-    .pos-address-box {
-        margin-top: 4px;
-    }
-    .pos-address-card {
-        border: 1px solid #e8e4ef;
+        height: 56px;
         border-radius: 12px;
-        padding: 14px 16px;
-        background: linear-gradient(180deg, #fff 0%, #faf8fc 100%);
-        box-shadow: 0 8px 20px rgba(74, 74, 92, 0.08);
+        padding: 0 16px;
+        font-size: 15px;
+        font-weight: 500;
     }
-    .pos-address-card--warn {
-        border-color: #f0d9a8;
-        background: #fffaf0;
-    }
-    .pos-address-card__head {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 10px;
-    }
-    .pos-address-card__icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        background: rgba(139, 123, 168, 0.14);
-        color: #8B7BA8;
+    .pos-customer-add-btn {
+        flex-shrink: 0;
+        width: 56px;
+        height: 56px;
+        min-width: 56px;
+        padding: 0;
+        border-radius: 12px;
+        border: 1px solid var(--pos-primary, #8B7BA8);
+        background: var(--pos-primary, #8B7BA8);
+        color: #fff;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
+        font-size: 30px;
+        font-weight: 300;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s, transform 0.15s;
     }
-    .pos-address-card__meta {
-        font-size: 12px;
-        color: #6b6580;
-        margin-top: 2px;
+    .pos-customer-add-btn:hover {
+        background: var(--pos-primary-dark, #6f5f8c);
+        border-color: var(--pos-primary-dark, #6f5f8c);
+        color: #fff;
     }
-    .pos-address-card__text {
-        color: #4A4A5C;
-        line-height: 1.5;
-        font-size: 14px;
-    }
-    #posCartPanel .apply-promo-code {
-        display: none;
-    }
+    .pos-customer-results { position: absolute; left: 0; right: 0; top: calc(100% + 6px); background: #fff; color: #232532; z-index: 40; max-height: 280px; overflow: auto; border-radius: 12px; box-shadow: 0 10px 24px rgba(0,0,0,.12); display: none; }
+    .pos-customer-results .item { padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .pos-customer-results .item:last-child { border-bottom: 0; }
+    .pos-customer-results .item small { display: block; color: #6b6b6b; font-size: 12px; }
+    .pos-customer-results .no-result { cursor: default; color: #888; }
+    .pos-address-box { margin-top: 4px; }
+    .pos-address-card--warn { border-color: #f0d9a8; background: #fffaf0; }
+    .pos-address-card__head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+    .pos-address-card__icon { width: 38px; height: 38px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pos-address-card__meta { font-size: 12px; color: #6b6580; margin-top: 2px; }
+    .pos-address-card__text { color: #4A4A5C; line-height: 1.5; font-size: 14px; }
 </style>
 @endsection
 @section('admin-content')
@@ -131,42 +73,21 @@
 
             <section class="">
                 <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-lg-12 col-xl-8  product-bg">
-                            <div class="row product-main-box">
-                                <div class="col-lg-12 product-padding ">
-                                    <div class="product-taitel">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="product-btn">
-                                                    <a href="{{ route('admin.pos.index') }}">
-                                                        <span>
-                                                            <svg width="14" height="10" viewBox="0 0 14 10" fill="none"
-                                                                xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M5 1L1 5M1 5L5 9M1 5L13 5" stroke-width="1.5"
-                                                                    stroke-linecap="round" stroke-linejoin="round" />
-                                                            </svg>
-                                                        </span>
-                                                        {{__('admin.Back')}}
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        
-                                            <div class="col-md-4 pt-1">
-                                                <div class="product-taitel">
-                                                    <h3>{{__('admin.Product Section')}}</h3>
-                                                </div>
-                                            </div>
-                                        
-                                            <div class="col-md-4 pt-2">
-                                                    <button type="button" class="btn btn-primary btn-primary-two" data-toggle="modal"
-                                                            data-target="#exampleModalLong-2">
-                                                         {{__('Add Product') }}
-                                                    </button>
-                                            </div>  
-                                        </div>
-                                    </div>
+                    <div class="row pos-layout-row">
+                        <div class="col-lg-12 col-xl-8 pos-products-column product-bg">
+                            <div class="pos-toolbar">
+                                <div class="pos-toolbar__left">
+                                    <a href="{{ route('admin.pos.index') }}" class="pos-back-link">
+                                        <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M5 1L1 5M1 5L5 9M1 5L13 5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        {{__('admin.Back')}}
+                                    </a>
+                                    <h2 class="pos-toolbar__title">{{__('admin.Product Section')}}</h2>
                                 </div>
+                                <button type="button" class="pos-btn pos-btn--outline" data-toggle="modal" data-target="#exampleModalLong-2">
+                                    {{__('Add Product') }}
+                                </button>
                             </div>
                              <!-- Modal -->
                              <div class="modal fade" id="exampleModalLong-2"  role="dialog"
@@ -329,7 +250,7 @@
                              </div>
                          </div>
                         
-                            <div class="row row-p-30">
+                            <div class="row row-p-30 pos-filters">
                                 <div class="col-lg-12 col-p-0">
                                     <div class="product-categories">
                                         <div class="product-categories-search">
@@ -375,55 +296,36 @@
                                 <!-- Modal -->
 
 
-                                <div class="col-lg-2 col-md-6 col-p-10px">
-                                    <div class="product-item">
-                                        <div class="product-item-overlay">
-                                            <div class="product-btn-item">
-                                                <div class="product-item-overlay-btn">
-                                                    @if ($product->qty == 0)
-                                                        <p>{{__('admin.stock:')}} <span style="color: red;"><b>0</b></span></p>
-                                                    @else
-                                                        <p>{{__('admin.stock:')}} <span style="color: yellow;"><b>{{$product->qty}}</b></span></p>
-                                                    @endif
-
-
-                                                    <button type="button" class="over-btn" data-toggle="modal"
-                                                        data-target="#exampleModalLong{{$product->id}}">
-                                                        {{__('admin.Details')}}
-                                                    </button>
-
-                                                </div>
-
-                                                <div class="product-item-overlay-btn product-item-overlay-btn-two">
-                                                    <a href="{{ route('admin.pos.add.product',$product->id) }}"
-                                                        class="over-btn-two pos-add-product">{{__('admin.Select')}}</a>
-                                                    {{-- <button  type="button" class="over-btn-two" data-bs-toggle="modal"
-                                                            data-bs-target="">
-                                                            Select
-                                                        </button> --}}
-                                                </div>
-                                            </div>
+                                <div class="col-lg-3 col-md-4 col-sm-6 col-p-10px">
+                                    <div class="product-item pos-product-card">
+                                        @if ($product->qty == 0)
+                                            <span class="pos-stock-badge pos-stock-badge--out">0 {{ __('admin.stock') }}</span>
+                                        @else
+                                            <span class="pos-stock-badge">{{ $product->qty }}</span>
+                                        @endif
+                                        <div class="product-item-img pos-product-card__img">
+                                            <img src="{{ asset($product->thumb_image) }}" alt="{{ $product->short_name }}">
                                         </div>
-                                        <div class="product-item-img">
-                                            <img class="rounded-circle" src="{{ asset($product->thumb_image) }}"
-                                                width="100px" height="100px" class="img-fluid">
-                                        </div>
-                                        <div class="product-item-text">
-                                            <p>{{$product->short_name}}</p>
-
-                                            <div class="product-item-text-btm">
+                                        <div class="product-item-text pos-product-card__body">
+                                            <p class="pos-product-card__name">{{ $product->short_name }}</p>
+                                            <div class="product-item-text-btm pos-product-card__price">
                                                 @if ($product->offer_price == '')
-
-                                                <span> {{ $setting->currency_icon }}{{ $product->price }} </span>
+                                                    <span>{{ $setting->currency_icon }}{{ $product->price }}</span>
                                                 @else
-                                                <span>
-                                                    <del>{{ $setting->currency_icon }}{{ $product->price }}</del>
-                                                </span>
-                                                <span> {{ $setting->currency_icon }}{{ $product->offer_price }} </span>
+                                                    <span><del>{{ $setting->currency_icon }}{{ $product->price }}</del></span>
+                                                    <span>{{ $setting->currency_icon }}{{ $product->offer_price }}</span>
                                                 @endif
-
-
                                             </div>
+                                        </div>
+                                        <div class="pos-product-card__actions">
+                                            <button type="button" class="pos-btn pos-btn--ghost" data-toggle="modal" data-target="#exampleModalLong{{ $product->id }}">
+                                                {{ __('admin.Details') }}
+                                            </button>
+                                            @if ($product->qty > 0)
+                                                <a href="{{ route('admin.pos.add.product', $product->id) }}" class="pos-btn pos-btn--primary pos-add-product">{{ __('admin.Select') }}</a>
+                                            @else
+                                                <span class="pos-btn pos-btn--disabled">{{ __('admin.Select') }}</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -633,12 +535,13 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-4 col-lg-pl-30px">
+                        <div class="col-lg-12 col-xl-4 pos-cart-column col-lg-pl-30px">
                             <div class="row billing-main-box">
                                 <div class="col-lg-12 product-padding ">
                                     <div>
                                         <div class="billing-section-taitel">
                                             <h3>{{__('admin.Billing Section') }}</h3>
+                                            <span class="pos-cart-count" id="posCartCount">{{ $cart_products->count() }}</span>
                                         </div>
 
                                         <div class="billing-btn-main">
@@ -653,103 +556,14 @@
                                                     <input type="hidden" id="posCustomerId" value="{{ $selected_customer->id ?? '' }}">
                                                     <div id="posCustomerResults" class="pos-customer-results"></div>
                                                 </div>
-                                                <div class="billing-btn-three">
-                                                    <button type="button" class="btn btn-primary-two" data-toggle="modal"
-                                                        data-target="#exampleModalLong-1">
-                                                        {{__('admin.Add Customer') }}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                                        <!-- Modal -->
-                                                        <div class="modal fade" id="exampleModalLong-1"  role="dialog"
-                                                            aria-labelledby="exampleModalLongTitle" aria-hidden="true">
-                                                            <div class="modal-dialog modal-dialog-two" role="document">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                <h5 class="modal-title" id="exampleModalLongTitle-1"> {{__('admin.Add New Customer') }}</h5>
-                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                    <span aria-hidden="true">&times;</span>
-                                                                </button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                <div class="modal-from">
-                                                                    <form
-                                                                        action="{{ route('admin.pos.add.customer') }}"
-                                                                        method="post">
-                                                                        @csrf
-                                                                        <div class="from-item-main">
-                                                                        <div class="modal-from-item-d-b">
-                                                                            <div class="modal-from-inner">
-                                                                            <label for="exampleFormControlInput1" class="form-label">{{__('admin.Full Name') }} <span style="color: red;">*</span></label>
-                                                                            <input type="text" class="form-control" name="name" id="exampleFormControlInput1"
-                                                                            placeholder=" Name" required>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="modal-from-item modal-from-item-two">
-                                                                            <div class="modal-from-inner">
-                                                                            <label for="exampleFormControlInput1" class="form-label">{{__('admin.Email Address') }} <span style="color: red;">*</span></label>
-                                                                            <input type="email" class="form-control" name="email" id="exampleFormControlInput5"
-                                                                                placeholder="infoyour@gmail.com" required>
-                                                                            </div>
-                                                                            <div class="modal-from-inner">
-                                                                            <label for="exampleFormControlInput1" class="form-label">{{__('admin.Phone Number') }} <span style="color: red;">*</span></label>
-                                                                            <input type="text" class="form-control" name="phone" id="exampleFormControlInput4"
-                                                                                placeholder="Phone Number" required>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="modal-from-item-d-b">
-                                                                            <div class="modal-from-inner">
-                                                                            <label class="form-label">{{__('admin.Country') }}</label>
-                                                                            <input type="text" class="form-control" value="Bangladesh" readonly>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="modal-from-item-d-b">
-                                                                            <div class="modal-from-inner">
-                                                                            <label class="form-label">{{__('admin.Address') }} <span style="color: red;">*</span></label>
-                                                                            <textarea class="form-control" name="address" rows="3" placeholder="{{ __('admin.House, road, area, landmark') }}" required></textarea>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="modal-from-item-check mb-3">
-                                                                            <label class="d-block mb-2">{{ __('admin.Delivery Area') }} <span style="color: red;">*</span></label>
-                                                                            <div class="form-check form-check-inline">
-                                                                                <input class="form-check-input" type="radio" name="delivery_area" id="areaInside" value="inside" checked>
-                                                                                <label class="form-check-label" for="areaInside">{{ __('admin.Inside') }}</label>
-                                                                            </div>
-                                                                            <div class="form-check form-check-inline">
-                                                                                <input class="form-check-input" type="radio" name="delivery_area" id="areaOutside" value="outside">
-                                                                                <label class="form-check-label" for="areaOutside">{{ __('admin.Outside') }}</label>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="modal-from-item-check">
-                                                                            <div class="form-check">
-                                                                                <input class="form-check-input" type="radio" name="location" id="homeRadio" value="Home" checked>
-                                                                                <label class="form-check-label" for="homeRadio">
-                                                                                    {{__('admin.Home') }}
-                                                                                </label>
-                                                                            </div>
-                                                                            <div class="form-check">
-                                                                                <input class="form-check-input" type="radio" name="location" id="officeRadio" value="Office">
-                                                                                <label class="form-check-label" for="officeRadio">
-                                                                                    {{__('admin.Office') }}
-                                                                                </label>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <button type="submit" class="modal-from-btm-btn">
-                                                                            {{__('admin.Submit') }}
-                                                                        </button>
-                                                                        </div>
-                                                                    </form>
-                                                                </div>
-                                                                </div>
-                                                            </div>
-                                                            </div>
-                                                        </div>
+                                                <button type="button"
+                                                    class="pos-customer-add-btn"
+                                                    data-toggle="modal"
+                                                    data-target="#exampleModalLong-1"
+                                                    title="{{ __('admin.Add Customer') }}"
+                                                    aria-label="{{ __('admin.Add Customer') }}">
+                                                    +
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -757,22 +571,6 @@
                                 <div class="delivery-information">
                                     <div class="delivery-information-taitel">
                                         <h3>{{__('admin.Selected Product')}}</h3>
-                                    </div>
-
-                                    <div class="delivery-information-top-item">
-                                        <div class="delivery-information-top-inner">
-                                            <div class="delivery-information-top-inner-text">
-                                                <div class="text-1">
-                                                    <p>{{__('Item')}}</p>
-                                                </div>
-                                                <div class="text-2">
-                                                    <p>{{__('QTY')}}</p>
-                                                </div>
-                                            </div>
-
-                                            <p>{{__('Price')}}</p>
-                                            <p>{{__('Action')}}</p>
-                                        </div>
                                     </div>
 
                                     <div id="posCartPanel">
@@ -1024,6 +822,79 @@
 
     </section>
 </div>
+
+{{-- Add Customer modal — outside cart panel so overlay covers full screen --}}
+<div class="modal fade pos-customer-modal" id="exampleModalLong-1" tabindex="-1" role="dialog"
+    aria-labelledby="exampleModalLongTitle-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered pos-customer-modal__dialog" role="document">
+        <div class="modal-content pos-customer-modal__content">
+            <div class="modal-header pos-customer-modal__header">
+                <h5 class="modal-title" id="exampleModalLongTitle-1">{{ __('admin.Add New Customer') }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body pos-customer-modal__body">
+                <form action="{{ route('admin.pos.add.customer') }}" method="post" class="pos-customer-form">
+                    @csrf
+                    <div class="form-group">
+                        <label for="posCustomerName">{{ __('admin.Full Name') }} <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" id="posCustomerName" placeholder="{{ __('admin.Full Name') }}" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="posCustomerEmail">{{ __('admin.Email Address') }} <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" id="posCustomerEmail" placeholder="info@example.com" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="posCustomerPhone">{{ __('admin.Phone Number') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="phone" id="posCustomerPhone" placeholder="{{ __('admin.Phone Number') }}" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ __('admin.Country') }}</label>
+                        <input type="text" class="form-control" value="Bangladesh" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="posCustomerAddress">{{ __('admin.Address') }} <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="address" id="posCustomerAddress" rows="3" placeholder="{{ __('admin.House, road, area, landmark') }}" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="d-block mb-2">{{ __('admin.Delivery Area') }} <span class="text-danger">*</span></label>
+                        <div class="pos-radio-group">
+                            <label class="pos-radio-pill">
+                                <input type="radio" name="delivery_area" value="inside" checked>
+                                <span>{{ __('admin.Inside') }}</span>
+                            </label>
+                            <label class="pos-radio-pill">
+                                <input type="radio" name="delivery_area" value="outside">
+                                <span>{{ __('admin.Outside') }}</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="d-block mb-2">{{ __('admin.Location') }}</label>
+                        <div class="pos-radio-group">
+                            <label class="pos-radio-pill">
+                                <input type="radio" name="location" value="Home" checked>
+                                <span>{{ __('admin.Home') }}</span>
+                            </label>
+                            <label class="pos-radio-pill">
+                                <input type="radio" name="location" value="Office">
+                                <span>{{ __('admin.Office') }}</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="pos-customer-modal__footer">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">{{ __('admin.Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary pos-customer-modal__submit">{{ __('admin.Submit') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="{{ asset('backend/pos/assets/js/custom.js')}}"></script>
 <script>
     (function ($) {
@@ -1059,6 +930,8 @@
         function refreshPosCart(res) {
             if (res && res.html) {
                 $('#posCartPanel').html(res.html);
+                var count = $('#posCartItems .pos-cart-item').length;
+                $('#posCartCount').text(count);
             }
             if (res && res.totals) {
                 syncPosOrderTotals(res.totals);
@@ -1154,6 +1027,10 @@
 
         $(document).on('change', '#posOrderCustomerSelect', function () {
             loadCustomerAddress($(this).val());
+        });
+
+        $('#exampleModalLong-1').on('show.bs.modal', function () {
+            $(this).appendTo('body');
         });
 
         $('#exampleModal-4').on('shown.bs.modal', function () {
