@@ -128,6 +128,10 @@
             padding-right: 15px;
             overflow-x: hidden;
         }
+
+        :root {
+            --site-header-height: 88px;
+        }
         
         /* Header Navbar Layout Styles - Always Fixed */
         .main-header {
@@ -158,7 +162,7 @@
         
         /* Add padding to body to prevent content being hidden behind fixed navbar */
         body {
-            padding-top: 72px; /* reduced to match slimmer header */
+            padding-top: var(--site-header-height);
         }
         
         /* Ensure container doesn't restrict dropdown visibility */
@@ -207,9 +211,11 @@
             display: block !important;
         }
         
-        /* Optional: Also show on hover for better UX */
-        .dropdown:hover .dropdown-menu {
-            display: block !important;
+        /* Optional: show Categories dropdown on hover (desktop only) */
+        @media (min-width: 992px) {
+            .navbar-nav .dropdown:hover .dropdown-menu {
+                display: block !important;
+            }
         }
         
         /* Dropdown items styling */
@@ -225,37 +231,38 @@
             color: var(--primary-color);
         }
         
-        /* Categories dropdown - appears above to avoid slider overlap */
-        .navbar-nav .dropdown:first-of-type .dropdown-menu {
-            top: auto !important;
-            bottom: 100% !important;
-            margin-bottom: 0.5rem !important;
-            margin-top: 0 !important;
-            transform: translateY(-10px) !important;
-        }
-        
-        /* More dropdown - appears below normally */
-        .navbar-nav .dropdown:last-of-type .dropdown-menu {
+        /* Navbar category dropdown — open below the link */
+        .navbar-nav .dropdown .dropdown-menu {
             top: 100% !important;
             bottom: auto !important;
+            left: 0 !important;
+            right: auto !important;
             margin-top: 0.5rem !important;
             margin-bottom: 0 !important;
-            transform: translateY(0) !important;
+            transform: none !important;
+            z-index: 10001 !important;
         }
         
         .navbar {
-            padding: 1.5rem 0;
+            padding: 0.85rem 0;
+            align-items: center;
         }
         
         .navbar-brand {
-            margin-right: 2rem;
+            flex: 0 0 auto;
+            margin-right: 1.5rem;
+            max-width: none;
+            display: flex;
+            align-items: center;
         }
         
         .logo-img {
-            width: 100%;
+            width: auto;
             height: auto;
-            max-width: 150px;
+            max-height: 48px;
+            max-width: 220px;
             display: block;
+            object-fit: contain;
         }
         
         .logo-text {
@@ -547,31 +554,44 @@
              .navbar-collapse {
                  display: flex !important;
                  align-items: center;
-                 justify-content: flex-start;
-                 gap: 0;
+                 justify-content: flex-end;
+                 flex: 1 1 auto;
+                 min-width: 0;
+                 gap: 0.75rem;
              }
              
-             /* Add extra space between logo and menu on desktop */
              .navbar-brand {
-                 margin-right: 2.5rem;
+                 margin-right: 1.25rem;
              }
 
              .navbar-nav {
                  flex-direction: row;
-                 /* Grow to fill space between logo and search, center items */
-                 flex: 1 1 auto;
+                 flex: 0 1 auto;
                  justify-content: center;
-                 margin-left: 0;
-                 margin-right: 0.75rem; /* small, consistent gap before search */
-                 margin-top: 2px; /* lower menu items slightly */
+                 flex-wrap: nowrap;
+                 white-space: nowrap;
+                 margin: 0;
+             }
+
+             .navbar-nav > .nav-item > .nav-link,
+             .navbar-nav > .nav-link {
+                 padding: 0.5rem 0.75rem;
+                 font-size: 0.9rem;
+                 white-space: nowrap;
              }
              
              .search-section {
-                 flex: 0 0 320px;
-                 max-width: 320px;
-                 width: 320px;
+                 flex: 0 1 220px;
+                 max-width: 220px;
+                 min-width: 150px;
+                 width: auto;
+                 margin: 0;
+             }
+
+             .header-actions {
+                 flex: 0 0 auto;
                  margin-left: 0;
-                 margin-right: 0;
+                 white-space: nowrap;
              }
          }
          
@@ -617,6 +637,14 @@
         
         /* Mobile Layout */
         @media (max-width: 991.98px) {
+            :root {
+                --site-header-height: 56px;
+            }
+
+            body {
+                padding-top: var(--site-header-height);
+            }
+
             .navbar-collapse {
                 margin-top: 1rem;
                 position: relative;
@@ -1215,17 +1243,19 @@
                 sortMenu.style.display = 'none';
             }
             
-            // Close navbar dropdowns when clicking outside
-            const navbarDropdowns = document.querySelectorAll('.navbar-nav .dropdown');
-            navbarDropdowns.forEach(function(dropdown) {
-                if (!dropdown.contains(e.target)) {
-                    dropdown.classList.remove('show');
-                    const menu = dropdown.querySelector('.dropdown-menu');
-                    if (menu) {
-                        menu.classList.remove('show');
+            // Close navbar dropdowns when clicking outside (mobile/tablet collapse menu only)
+            if (window.innerWidth <= 991.98) {
+                const navbarDropdowns = document.querySelectorAll('.navbar-nav .dropdown');
+                navbarDropdowns.forEach(function(dropdown) {
+                    if (!dropdown.contains(e.target)) {
+                        dropdown.classList.remove('show');
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        if (menu) {
+                            menu.classList.remove('show');
+                        }
                     }
-                }
-            });
+                });
+            }
         });
         
         // Prevent sort dropdown from interfering with navbar dropdowns
