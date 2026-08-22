@@ -369,9 +369,12 @@ class FrontendController extends Controller
             ->where('id', '!=', $product->id)
             ->where('status', 1)
             ->where('approve_by_admin', 1)
-            ->with(['category', 'brand'])
+            ->with(['category', 'brand', 'reviews', 'activeVariants'])
             ->limit(4)
-            ->get();
+            ->get()
+            ->each(function ($relatedProduct) {
+                $relatedProduct->averageRating = $relatedProduct->reviews->avg('rating') ?? 0;
+            });
         
         // Get SEO settings
         $seoSetting = SeoSetting::first();
