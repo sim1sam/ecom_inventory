@@ -74,7 +74,12 @@
 
     body.mobile-app-mode .pd-page,
     body.mobile-app-mode .cart-page {
-        padding: 1rem 0 calc(5.5rem + env(safe-area-inset-bottom, 0px));
+        padding: 0 0 calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    body.mobile-app-mode .pd-page .container {
+        padding-left: 12px;
+        padding-right: 12px;
     }
 
     body.mobile-app-mode.pd-has-mobile-bar .pd-page {
@@ -770,13 +775,25 @@
 
 @media (max-width: 767.98px) {
     .row.g-4 > .col-6,
-    .row > .product-item.col-6 {
+    .row > .product-item.col-6,
+    .products-grid-row > .col-6,
+    .products-grid-row > .product-item.col-6,
+    #productsGrid > .col-6,
+    #productsGrid > .product-item.col-6,
+    #productsList > .col-6,
+    #productsList > .product-item.col-6,
+    #relatedProductsGrid > .col-6,
+    #relatedProductsGrid > .product-item.col-6 {
         padding-left: 6px;
         padding-right: 6px;
     }
 
     .row.g-4,
-    .product-listing-grid {
+    .product-listing-grid,
+    .products-grid-row,
+    #productsGrid,
+    #productsList,
+    #relatedProductsGrid {
         --bs-gutter-x: 0.75rem;
         --bs-gutter-y: 0.75rem;
     }

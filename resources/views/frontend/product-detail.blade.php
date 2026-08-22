@@ -36,9 +36,9 @@
 @endphp
 
 <div class="pd-page">
-    <div class="container">
-        <div class="row pd-layout g-4">
-            <div class="col-lg-6">
+    <div class="container my-5">
+        <div class="row pd-layout">
+            <div class="col-12 col-lg-6 pd-layout__media">
                 <div class="pd-gallery-card">
                     <div class="pd-main-image-wrap">
                         <img src="{{ $mainImage }}"
@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <div class="col-lg-6">
+            <div class="col-12 col-lg-6 pd-layout__info">
                 <div class="pd-info-card">
                     <div class="product-meta">
                         {{ $product->category->name ?? 'Uncategorized' }}
@@ -280,9 +280,9 @@
         @if($relatedProducts->count() > 0)
         <section class="pd-related">
             <h2 class="pd-related-title">Related Products</h2>
-            <div class="row g-4">
+            <div class="row products-grid-row" id="relatedProductsGrid">
                 @foreach($relatedProducts as $relatedProduct)
-                <div class="col-6 col-lg-3 col-md-4 col-sm-6">
+                <div class="col-6 col-lg-3 col-md-4 col-sm-6 mb-4 product-item">
                     @include('frontend.partials.product-card', [
                         'product' => $relatedProduct,
                         'showBrand' => true,
