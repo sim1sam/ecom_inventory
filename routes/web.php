@@ -152,6 +152,7 @@ Route::group(['as'=> 'user.', 'prefix' => 'user'],function (){
 // Public location endpoints for checkout (outside middleware groups)
 Route::get('/public/states/{country}', [App\Http\Controllers\Frontend\PublicLocationController::class, 'getStatesByCountry'])->name('public.states');
 Route::get('/public/cities/{state}', [App\Http\Controllers\Frontend\PublicLocationController::class, 'getCitiesByState'])->name('public.cities');
+Route::get('/manifest.webmanifest', [App\Http\Controllers\Frontend\PwaController::class, 'manifest'])->name('pwa.manifest');
 
 Route::group(['middleware' => ['demo','XSS']], function () {
 Route::group(['middleware' => ['maintainance']], function () {

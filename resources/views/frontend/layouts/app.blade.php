@@ -74,6 +74,11 @@
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ $setting && $setting->favicon ? asset($setting->favicon) : asset('frontend/images/favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ $setting && $setting->logo ? asset($setting->logo) : asset('frontend/pwa/icon-192.png') }}">
+
+    <!-- PWA -->
+    <link rel="manifest" href="{{ route('pwa.manifest') }}">
+    <meta name="mobile-web-app-capable" content="yes">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -88,6 +93,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('frontend/css/style.css') }}?v={{ filemtime(public_path('frontend/css/style.css')) }}">
     <link rel="stylesheet" href="{{ asset('frontend/css/mobile-app.css') }}?v={{ filemtime(public_path('frontend/css/mobile-app.css')) }}">
+    <link rel="stylesheet" href="{{ asset('frontend/css/pwa-install.css') }}?v={{ filemtime(public_path('frontend/css/pwa-install.css')) }}">
     
     <!-- Dynamic Theme Colors from Admin Settings -->
     @include('frontend.partials.theme-variables')
@@ -1263,5 +1269,8 @@
               <i class="fab fa-whatsapp"></i>
           </a>
       @endif
+
+    @include('frontend.partials.pwa-install')
+    <script src="{{ asset('frontend/js/pwa-install.js') }}?v={{ filemtime(public_path('frontend/js/pwa-install.js')) }}" defer></script>
 </body>
 </html>
