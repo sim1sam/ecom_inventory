@@ -80,7 +80,7 @@ class FrontendController extends Controller
         }])->get();
             
         // Top Products for "Our Products" section - Show last 8 highlighted/top products
-        $products = Product::with(['category', 'brand', 'reviews'])
+        $products = Product::with(['category', 'brand', 'reviews', 'activeVariants'])
             ->where('status', 1)
             ->where('is_top', 1)
             ->where('approve_by_admin', 1)
@@ -98,7 +98,7 @@ class FrontendController extends Controller
             ->get();
             
         // New Arrival Products - Show last 4 newest products
-        $newArrivalProducts = Product::with(['category', 'brand', 'reviews'])
+        $newArrivalProducts = Product::with(['category', 'brand', 'reviews', 'activeVariants'])
             ->where('status', 1)
             ->where('approve_by_admin', 1)
             ->latest()
@@ -119,7 +119,7 @@ class FrontendController extends Controller
             ->first();
         $flashSaleProducts = collect();
         if ($flashSale) {
-            $flashSaleProducts = FlashSaleProduct::with(['product.category', 'product.brand'])
+            $flashSaleProducts = FlashSaleProduct::with(['product.category', 'product.brand', 'product.activeVariants'])
                 ->where('status', 1)
                 ->whereHas('product', function($query) {
                     $query->where('status', 1)->where('approve_by_admin', 1);
@@ -168,7 +168,7 @@ class FrontendController extends Controller
     
     public function products(Request $request)
     {
-        $query = Product::with(['category', 'brand', 'reviews'])
+        $query = Product::with(['category', 'brand', 'reviews', 'activeVariants'])
             ->where('status', 1)
             ->where('approve_by_admin', 1);
             
@@ -412,7 +412,7 @@ class FrontendController extends Controller
         $query = Product::where('category_id', $category->id)
             ->where('status', 1)
             ->where('approve_by_admin', 1)
-            ->with(['category', 'brand', 'reviews']);
+            ->with(['category', 'brand', 'reviews', 'activeVariants']);
 
         if (request()->filled('sub_category')) {
             $subIds = array_map('intval', array_filter(explode(',', request('sub_category'))));
@@ -562,7 +562,7 @@ class FrontendController extends Controller
         $query = Product::where('brand_id', $brand->id)
             ->where('status', 1)
             ->where('approve_by_admin', 1)
-            ->with(['category', 'brand', 'reviews']);
+            ->with(['category', 'brand', 'reviews', 'activeVariants']);
         
         // Apply price filter
         if (request('min_price')) {

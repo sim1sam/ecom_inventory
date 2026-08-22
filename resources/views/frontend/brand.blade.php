@@ -145,93 +145,10 @@
             <div class="row" id="productsGrid">
                 @foreach($products as $product)
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4 product-item">
-                    <div class="product-card h-100">
-                        <div class="product-image-container position-relative">
-                            <a href="{{ route('product-detail', ['slug' => $product->slug]) }}">
-                                <img src="{{ $product->thumb_image ? asset($product->thumb_image) : asset('frontend/images/default-product.svg') }}" 
-                                     alt="{{ $product->name }}" 
-                                     class="product-image img-fluid">
-                            </a>
-                            
-                            @if($product->offer_price && $product->offer_price < $product->price)
-                            <span class="badge bg-danger position-absolute top-0 start-0 m-2">
-                                {{ round((($product->price - $product->offer_price) / $product->price) * 100) }}% OFF
-                            </span>
-                            @endif
-                            
-                            <!-- Brand Badge -->
-                            <span class="badge bg-dark position-absolute bottom-0 start-0 m-2">
-                                {{ $brand->name }}
-                            </span>
-                            
-                            <div class="product-actions position-absolute top-0 end-0 m-2">
-                                <button class="btn btn-sm btn-light rounded-circle mb-2 wishlist-btn" 
-                                        data-product-id="{{ $product->id }}" title="Add to Wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                                <button class="btn btn-sm btn-light rounded-circle quick-view-btn" 
-                                        data-product-id="{{ $product->id }}" title="Quick View">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="product-info p-3">
-                            <div class="product-category text-muted small mb-1">
-                                {{ $product->category->name ?? 'Uncategorized' }}
-                            </div>
-                            
-                            <h6 class="product-title mb-2">
-                                <a href="{{ route('product-detail', ['slug' => $product->slug]) }}" 
-                                   class="text-decoration-none text-dark">
-                                    {{ $product->name }}
-                                </a>
-                            </h6>
-                            
-                            <!-- Rating -->
-                            <div class="product-rating mb-2">
-                                @php
-                                    $rating = $product->reviews->avg('rating') ?? 0;
-                                    $fullStars = floor($rating);
-                                    $hasHalfStar = ($rating - $fullStars) >= 0.5;
-                                @endphp
-                                
-                                <div class="d-flex align-items-center">
-                                    <div class="stars me-2">
-                                        @for($i = 1; $i <= 5; $i++)
-                                            @if($i <= $fullStars)
-                                                <i class="fas fa-star text-warning small"></i>
-                                            @elseif($i == $fullStars + 1 && $hasHalfStar)
-                                                <i class="fas fa-star-half-alt text-warning small"></i>
-                                            @else
-                                                <i class="far fa-star text-muted small"></i>
-                                            @endif
-                                        @endfor
-                                    </div>
-                                    <span class="rating-text text-muted small">
-                                        ({{ $product->reviews->count() }})
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <div class="product-price mb-3">
-                                @if($product->offer_price && $product->offer_price < $product->price)
-                                    <span class="current-price fw-bold text-primary">
-                                        {{ $setting->currency_icon }}{{ number_format($product->offer_price, 2) }}
-                                    </span>
-                                    <span class="original-price text-muted text-decoration-line-through ms-2">
-                                        {{ $setting->currency_icon }}{{ number_format($product->price, 2) }}
-                                    </span>
-                                @else
-                                    <span class="current-price fw-bold text-primary">
-                                        {{ $setting->currency_icon }}{{ number_format($product->price, 2) }}
-                                    </span>
-                                @endif
-                            </div>
-                            
-
-                        </div>
-                    </div>
+                    @include('frontend.partials.product-card', [
+                        'product' => $product,
+                        'showBrand' => false,
+                    ])
                 </div>
                 @endforeach
             </div>
@@ -362,65 +279,6 @@
     color: white;
 }
 
-.product-card {
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    background: white;
-    overflow: hidden;
-}
-
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-    border-color: var(--primary-color);
-}
-
-.product-image-container {
-    height: 250px;
-    overflow: hidden;
-}
-
-.product-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.product-card:hover .product-image {
-    transform: scale(1.05);
-}
-
-.product-actions {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.product-card:hover .product-actions {
-    opacity: 1;
-}
-
-.product-actions .btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.current-price {
-    color: var(--primary-color) !important;
-}
-
-.add-to-cart-btn {
-    transition: all 0.3s ease;
-}
-
-.add-to-cart-btn:hover {
-    transform: translateY(-2px);
-}
-
 .pagination-wrapper {
     display: flex;
     justify-content: center;
@@ -449,32 +307,6 @@
     color: white;
 }
 
-/* List View Styles */
-.list-view .product-item {
-    width: 100% !important;
-    flex: 0 0 100%;
-    max-width: 100%;
-}
-
-.list-view .product-card {
-    display: flex;
-    flex-direction: row;
-    height: auto;
-}
-
-.list-view .product-image-container {
-    width: 200px;
-    height: 200px;
-    flex-shrink: 0;
-}
-
-.list-view .product-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
 @media (max-width: 768px) {
     .brand-title {
         font-size: 2rem;
@@ -487,15 +319,6 @@
     .products-toolbar .row {
         flex-direction: column;
         gap: 15px;
-    }
-    
-    .list-view .product-card {
-        flex-direction: column;
-    }
-    
-    .list-view .product-image-container {
-        width: 100%;
-        height: 250px;
     }
 }
 </style>

@@ -129,33 +129,32 @@ function filterByPrice(maxPrice) {
 
 // Cart Functionality
 function initCartFunctionality() {
-    const addToCartBtns = document.querySelectorAll('.add-to-cart');
-    const cartCount = document.querySelector('.cart-count');
-    
-    addToCartBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const productId = this.dataset.productId;
-            const productName = this.dataset.productName;
-            const productPrice = this.dataset.productPrice;
-            const productImage = this.dataset.productImage;
-            
-            addToCart({
-                id: productId,
-                name: productName,
-                price: productPrice,
-                image: productImage,
-                quantity: 1
-            });
-        });
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.add-to-cart');
+        if (!btn || btn.disabled) {
+            return;
+        }
+
+        e.preventDefault();
+
+        addToCart({
+            id: btn.dataset.productId,
+            name: btn.dataset.productName,
+            price: btn.dataset.productPrice,
+            image: btn.dataset.productImage,
+            quantity: 1
+        }, btn);
     });
 }
 
 // Add item to cart
-function addToCart(product) {
-    // Show loading state
-    const button = event.target.closest('.add-to-cart');
+function addToCart(product, buttonEl) {
+    const button = buttonEl || (typeof event !== 'undefined' && event?.target
+        ? event.target.closest('.add-to-cart')
+        : null);
+    if (!button) {
+        return;
+    }
     const originalText = button.innerHTML;
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     button.disabled = true;

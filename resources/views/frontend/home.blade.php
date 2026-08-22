@@ -88,6 +88,22 @@
     background: #f8f9fa;
 }
 
+.category-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.category-card-link:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
+.category-card-link .category-overlay .btn {
+    pointer-events: none;
+}
+
 .category-image {
     width: 100%;
     height: 100%;
@@ -152,80 +168,6 @@
 
 .featured-categories {
     background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, rgba(139, 123, 168, 0.05) 100%);
-}
-
-/* Product Cards */
-.product-card {
-    border: none;
-    border-radius: 0;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-    background: white;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-}
-
-.product-card:hover {
-    transform: translateY(-5px);
-}
-
-.product-image {
-    position: relative;
-    overflow: hidden;
-    height: 300px;
-}
-
-.product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.product-card:hover .product-image img {
-    transform: scale(1.05);
-}
-
-.product-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.product-card:hover .product-overlay {
-    opacity: 1;
-}
-
-.product-info {
-    padding: 25px;
-    text-align: center;
-}
-
-.product-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.3rem;
-    margin-bottom: 15px;
-    color: #2c3e50;
-}
-
-.product-price {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #d4af37;
-}
-
-.original-price {
-    text-decoration: line-through;
-    color: #6c757d;
-    font-size: 1rem;
-    margin-left: 10px;
 }
 
 /* Section Styling */
@@ -1285,45 +1227,8 @@
         <div class="row g-4">
             @if(isset($products) && $products->count() > 0)
                 @foreach($products->take(4) as $product)
-                <div class="col-lg-3 col-md-6">
-                    <div class="product-card fade-in" data-category="{{ $product->category->slug ?? '' }}" data-price="{{ $product->offer_price ?? $product->price }}" data-name="{{ $product->name }}">
-                        <div class="product-image">
-                            <a href="{{ route('product-detail', ['slug' => $product->slug]) }}">
-                                <img src="{{ $product->thumb_image ? asset($product->thumb_image) : asset('frontend/images/default-product.svg') }}" alt="{{ $product->name }}" class="img-fluid" onerror="this.src='{{ asset('frontend/images/default-product.svg') }}'">
-                            </a>
-                        
-                            <div class="product-overlay">
-                                <a href="{{ route('product-detail', ['slug' => $product->slug]) }}" class="btn btn-primary me-2">View Details</a>
-                            </div>
-                            @if($product->offer_price && $product->offer_price < $product->price)
-                                <span class="badge bg-danger position-absolute top-0 start-0 m-2">Sale</span>
-                            @endif
-                            @if($product->is_featured)
-                                <span class="badge bg-primary position-absolute top-0 end-0 m-2">Featured</span>
-                            @endif
-                        </div>
-                        <div class="product-info">
-                            <h5 class="product-title">{{ $product->name }}</h5>
-                            <div class="product-price">
-                                @if($product->offer_price && $product->offer_price < $product->price)
-                                    {{ $setting->currency_icon }}{{ number_format($product->offer_price, 2) }}
-                                    <span class="original-price">{{ $setting->currency_icon }}{{ number_format($product->price, 2) }}</span>
-                                @else
-                                    {{ $setting->currency_icon }}{{ number_format($product->price, 2) }}
-                                @endif
-                            </div>
-                            <div class="product-rating mt-2">
-                                @for($i = 1; $i <= 5; $i++)
-                                    @if($i <= ($product->averageRating ?? 5))
-                                        <i class="fas fa-star text-warning"></i>
-                                    @else
-                                        <i class="far fa-star text-warning"></i>
-                                    @endif
-                                @endfor
-                                <span class="ms-1 text-muted">({{ $product->reviews_count ?? 0 }})</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-lg-3 col-md-6 fade-in">
+                    @include('frontend.partials.product-card', ['product' => $product, 'showCategory' => false])
                 </div>
                 @endforeach
             @endif
@@ -1350,63 +1255,63 @@
                 @foreach($featuredCategories->take(8) as $featuredCategory)
                     @if($featuredCategory->category)
                     <div class="col-lg-3 col-md-6">
-                        <div class="category-card fade-in">
+                        <a href="{{ route('category', $featuredCategory->category->slug) }}" class="category-card category-card-link fade-in">
                             <div class="category-image" style="height: 100%; overflow: hidden;">
                                 <img src="{{ $featuredCategory->category->image ? asset($featuredCategory->category->image) : asset('frontend/images/category-placeholder.jpg') }}" alt="{{ $featuredCategory->category->name }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
                                 <div class="category-overlay">
                                     <h4 class="category-title">{{ $featuredCategory->category->name }}</h4>
-                                    <a href="{{ route('category', $featuredCategory->category->slug) }}" class="btn btn-primary">Shop Now</a>
+                                    <span class="btn btn-primary">Shop Now</span>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
                     @endif
                 @endforeach
             @else
                 <!-- Default categories if no dynamic categories -->
                 <div class="col-lg-3 col-md-6">
-                    <div class="category-card fade-in">
+                    <a href="{{ route('products') }}" class="category-card category-card-link fade-in">
                         <div class="category-image" style="height: 100%; overflow: hidden;">
                             <img src="{{ asset('frontend/images/rings.jpg') }}" alt="Rings" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
                             <div class="category-overlay">
                                 <h4 class="category-title">Rings</h4>
-                                <a href="{{ route('products') }}" class="btn btn-primary">Shop Now</a>
+                                <span class="btn btn-primary">Shop Now</span>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="category-card fade-in">
+                    <a href="{{ route('products') }}" class="category-card category-card-link fade-in">
                         <div class="category-image" style="height: 100%; overflow: hidden;">
                             <img src="{{ asset('frontend/images/necklaces.jpg') }}" alt="Necklaces" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
                             <div class="category-overlay">
                                 <h4 class="category-title">Necklaces</h4>
-                                <a href="{{ route('products') }}" class="btn btn-primary">Shop Now</a>
+                                <span class="btn btn-primary">Shop Now</span>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="category-card fade-in">
+                    <a href="{{ route('products') }}" class="category-card category-card-link fade-in">
                         <div class="category-image" style="height: 100%; overflow: hidden;">
                             <img src="{{ asset('frontend/images/earrings.jpg') }}" alt="Earrings" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
                             <div class="category-overlay">
                                 <h4 class="category-title">Earrings</h4>
-                                <a href="{{ route('products') }}" class="btn btn-primary">Shop Now</a>
+                                <span class="btn btn-primary">Shop Now</span>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="category-card fade-in">
+                    <a href="{{ route('products') }}" class="category-card category-card-link fade-in">
                         <div class="category-image" style="height: 100%; overflow: hidden;">
                             <img src="{{ asset('frontend/images/bracelets.jpg') }}" alt="Bracelets" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
                             <div class="category-overlay">
                                 <h4 class="category-title">Bracelets</h4>
-                                <a href="{{ route('products') }}" class="btn btn-primary">Shop Now</a>
+                                <span class="btn btn-primary">Shop Now</span>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             @endif
         </div>
@@ -1433,7 +1338,8 @@
                             </a>
                         
                             <div class="product-overlay">
-                                <a href="{{ route('product-detail', ['slug' => $product->slug]) }}" class="btn btn-primary me-2">View Details</a>
+                                <a href="{{ route('product-detail', ['slug' => $product->slug]) }}" class="btn btn-light btn-sm me-2">View Details</a>
+                                @include('frontend.partials.product-add-to-cart', ['product' => $product, 'btnClass' => 'btn btn-light btn-sm add-to-cart'])
                             </div>
                             @if($product->offer_price && $product->offer_price < $product->price)
                                 <span class="badge bg-danger position-absolute top-0 start-0 m-2">Sale</span>
@@ -1488,41 +1394,12 @@
         <div class="row g-4">
             @if(isset($newArrivalProducts) && $newArrivalProducts->count() > 0)
                 @foreach($newArrivalProducts->take(4) as $product)
-                <div class="col-lg-3 col-md-6">
-                    <div class="product-card fade-in" data-category="{{ $product->category->slug ?? '' }}" data-price="{{ $product->offer_price ?? $product->price }}" data-name="{{ $product->name }}">
-                        <div class="product-image">
-                            <img src="{{ $product->thumb_image ? asset($product->thumb_image) : asset('frontend/images/default-product.svg') }}" alt="{{ $product->name }}" class="img-fluid" onerror="this.src='{{ asset('frontend/images/default-product.svg') }}';">
-                        
-                            <div class="product-overlay">
-                                <a href="{{ route('product-detail', ['slug' => $product->slug]) }}" class="btn btn-primary me-2">View Details</a>
-                            </div>
-                            @if($product->offer_price && $product->offer_price < $product->price)
-                                <span class="badge bg-danger position-absolute top-0 start-0 m-2">Sale</span>
-                            @endif
-                            <span class="badge bg-success position-absolute top-0 end-0 m-2">New</span>
-                        </div>
-                        <div class="product-info">
-                            <h5 class="product-title">{{ $product->name }}</h5>
-                            <div class="product-price">
-                                @if($product->offer_price && $product->offer_price < $product->price)
-                                    {{ $setting->currency_icon }}{{ number_format($product->offer_price, 2) }}
-                                    <span class="original-price">{{ $setting->currency_icon }}{{ number_format($product->price, 2) }}</span>
-                                @else
-                                    {{ $setting->currency_icon }}{{ number_format($product->price, 2) }}
-                                @endif
-                            </div>
-                            <div class="product-rating mt-2">
-                                @for($i = 1; $i <= 5; $i++)
-                                    @if($i <= ($product->averageRating ?? 5))
-                                        <i class="fas fa-star text-warning"></i>
-                                    @else
-                                        <i class="far fa-star text-warning"></i>
-                                    @endif
-                                @endfor
-                                <span class="ms-1 text-muted">({{ $product->reviews_count ?? 0 }})</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-lg-3 col-md-6 fade-in">
+                    @include('frontend.partials.product-card', [
+                        'product' => $product,
+                        'showCategory' => false,
+                        'tagBadge' => 'new',
+                    ])
                 </div>
                 @endforeach
             @endif
@@ -1633,33 +1510,13 @@
         </div>
         <div class="row g-4">
             @foreach($flashSaleProducts->take(4) as $product)
-            <div class="col-lg-3 col-md-6">
-                <div class="product-card flash-sale-card fade-in">
-                    <div class="product-image">
-                        <img src="{{ $product->product->thumb_image ? asset($product->product->thumb_image) : asset('frontend/images/default-product.svg') }}" alt="{{ $product->product->name }}" class="img-fluid" onerror="this.src='{{ asset('frontend/images/default-product.svg') }}';">
-                    
-                        <div class="product-overlay">
-                            <a href="{{ route('product-detail', ['slug' => $product->product->slug]) }}" class="btn btn-light me-2">View Details</a>
-                        </div>
-                        @if($product->product->offer_price && $product->product->offer_price < $product->product->price)
-                            @php
-                                $discount = round((($product->product->price - $product->product->offer_price) / $product->product->price) * 100);
-                            @endphp
-                            <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">-{{ $discount }}%</span>
-                        @endif
-                    </div>
-                    <div class="product-info text-dark bg-white p-3">
-                        <h5 class="product-title">{{ $product->product->name }}</h5>
-                        <div class="product-price">
-                            @if($product->product->offer_price && $product->product->offer_price < $product->product->price)
-                                {{ $setting->currency_icon }}{{ number_format($product->product->offer_price, 2) }}
-                                <span class="original-price text-muted">{{ $setting->currency_icon }}{{ number_format($product->product->price, 2) }}</span>
-                            @else
-                                {{ $setting->currency_icon }}{{ number_format($product->product->price, 2) }}
-                            @endif
-                        </div>
-                    </div>
-                </div>
+            <div class="col-lg-3 col-md-6 fade-in">
+                @include('frontend.partials.product-card', [
+                    'product' => $product->product,
+                    'showCategory' => false,
+                    'tagBadge' => 'flash',
+                    'extraClass' => 'flash-sale-card',
+                ])
             </div>
             @endforeach
         </div>
