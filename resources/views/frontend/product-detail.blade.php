@@ -418,6 +418,11 @@ document.addEventListener('DOMContentLoaded', function() {
             addToWishlist(this.dataset.productId);
         });
     });
+    function addToCart(productId, quantity, variants) {
+        if (!addToCartBtn) {
+            return;
+        }
+
         const originalText = addToCartBtn.innerHTML;
         addToCartBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
         addToCartBtn.disabled = true;
@@ -476,10 +481,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function buyNow(productId, quantity, variants) {
-        console.log('buyNow function called with:', { productId, quantity, variants });
-        
-        // Show loading state
-        const buyNowBtn = document.getElementById('buyNow');
+        if (!buyNowBtn) {
+            return;
+        }
+
         const originalText = buyNowBtn.innerHTML;
         buyNowBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         buyNowBtn.disabled = true;

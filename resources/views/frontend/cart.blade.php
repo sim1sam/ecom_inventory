@@ -3,80 +3,81 @@
 @section('title', 'Shopping Cart')
 
 @section('content')
-<div class="container my-5">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
-        </ol>
-    </nav>
+<div class="cart-page">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="pd-breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+            </ol>
+        </nav>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">Shopping Cart (<span id="cart-count">0</span> items)</h4>
-                </div>
-                <div class="card-body">
-                    <div id="cart-items">
-                        <!-- Cart items will be loaded here -->
+        <div class="cart-page-header">
+            <h1 class="cart-page-title">Shopping Cart</h1>
+            <span class="cart-page-count">
+                <i class="fas fa-shopping-bag"></i>
+                <span id="cart-count">0</span> items
+            </span>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="cart-panel">
+                    <div class="cart-panel__head">
+                        <h2>Your Items</h2>
                     </div>
-                    <div id="empty-cart" class="text-center py-5" style="display: none;">
-                        <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
-                        <h5>Your cart is empty</h5>
-                        <p class="text-muted">Add some products to your cart to continue shopping.</p>
-                        <a href="{{ route('products') }}" class="btn btn-primary">Continue Shopping</a>
+
+                    <div id="cart-items" class="cart-items-list"></div>
+
+                    <div id="empty-cart" class="cart-empty" style="display: none;">
+                        <div class="cart-empty__icon"><i class="fas fa-shopping-bag"></i></div>
+                        <h3>Your cart is empty</h3>
+                        <p>Add products you love and they will show up here.</p>
+                        <a href="{{ route('products') }}" class="cart-btn cart-btn--checkout">
+                            <i class="fas fa-store"></i> Continue Shopping
+                        </a>
                     </div>
-                    <div id="login-prompt" class="text-center py-5" style="display: none;">
-                        <i class="fas fa-user-lock fa-3x text-muted mb-3"></i>
-                        <h5>Please log in to view your cart</h5>
-                        <p class="text-muted">Log in to see your saved cart items and continue shopping.</p>
-                        <a href="{{ route('login') }}" class="btn btn-primary me-2">Login</a>
-                        <a href="{{ route('register') }}" class="btn btn-outline-primary">Register</a>
+
+                    <div id="login-prompt" class="cart-login-prompt" style="display: none;">
+                        <div class="cart-login-prompt__icon"><i class="fas fa-user-lock"></i></div>
+                        <h3>Please log in to view your cart</h3>
+                        <p>Sign in to access saved cart items and checkout faster.</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <a href="{{ route('login') }}" class="cart-btn cart-btn--checkout">Login</a>
+                            <a href="{{ route('register') }}" class="cart-btn cart-btn--secondary">Register</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Order Summary</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Subtotal:</span>
-                        <span id="subtotal">$0.00</span>
+            <div class="col-lg-4">
+                <div class="cart-summary-card">
+                    <h2>Order Summary</h2>
+
+                    <div class="cart-summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">{{ $setting->currency_icon ?? '$' }}0.00</span>
                     </div>
 
-                    <hr>
-                    <div class="d-flex justify-content-between mb-3">
-                        <strong>Total:</strong>
-                        <strong id="total">$0.00</strong>
+                    <div class="cart-summary-total">
+                        <span>Total</span>
+                        <span id="total">{{ $setting->currency_icon ?? '$' }}0.00</span>
                     </div>
-                    
 
-                    
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-primary btn-lg" id="checkout-btn" disabled>
-                            <i class="fas fa-lock me-2"></i>Proceed to Checkout
+                    <div class="cart-summary-actions">
+                        <button class="cart-btn cart-btn--checkout" id="checkout-btn" disabled>
+                            <i class="fas fa-lock"></i> Proceed to Checkout
                         </button>
-                        <a href="{{ route('products') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                        <a href="{{ route('products') }}" class="cart-btn cart-btn--secondary">
+                            <i class="fas fa-arrow-left"></i> Continue Shopping
                         </a>
                     </div>
                 </div>
-            </div>
 
-            <!-- Recommended Products -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h6 class="mb-0">You might also like</h6>
-                </div>
-                <div class="card-body">
-                    <div id="recommended-products">
-                        <!-- Recommended products will be loaded here -->
+                <div class="cart-recommend-card">
+                    <h3>You might also like</h3>
+                    <div id="recommended-products" class="cart-recommend-list">
+                        <p class="cart-recommend-empty mb-0">Loading suggestions...</p>
                     </div>
                 </div>
             </div>
@@ -84,146 +85,23 @@
     </div>
 </div>
 
-<style>
-.cart-item {
-    border-bottom: 1px solid #eee;
-    padding: 20px 0;
-}
-
-.cart-item:last-child {
-    border-bottom: none;
-}
-
-.cart-item img {
-    width: 100%;
-    max-width: 80px;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: 8px;
-}
-
-.quantity-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.quantity-controls button {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #ddd;
-    background: white;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.quantity-controls button:hover {
-    background: #f8f9fa;
-    border-color: #007bff;
-    color: #007bff;
-}
-
-.quantity-controls input {
-    width: 60px;
-    text-align: center;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    height: 30px;
-}
-
-.remove-item {
-    color: #dc3545;
-    cursor: pointer;
-    font-size: 18px;
-}
-
-.remove-item:hover {
-    color: #c82333;
-}
-
-.recommended-product {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.recommended-product:last-child {
-    border-bottom: none;
-}
-
-.recommended-product img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-.recommended-product .product-info {
-    flex: 1;
-}
-
-.recommended-product .product-name {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 2px;
-}
-
-.recommended-product .product-price {
-    font-size: 13px;
-    color: #d4af37;
-    font-weight: 600;
-}
-
-/* Improve spacing inside cart item rows */
-.cart-item .row {
-    row-gap: 0.5rem;
-}
-
-/* Mobile tweaks */
-@media (max-width: 576px) {
-  .cart-item img {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    aspect-ratio: auto;
-  }
-  .quantity-controls {
-    gap: 8px;
-    flex-direction: row;
-    align-items: center;
-  }
-  .quantity-controls button {
-    width: 30px;
-    height: 30px;
-  }
-  .quantity-controls input {
-    width: 56px;
-  }
-}
-</style>
-
 <script>
 class ShoppingCart {
     constructor() {
         this.cart = [];
+        this.currencyIcon = @json($setting->currency_icon ?? '$');
+        this.defaultProductImage = @json(asset('frontend/images/default-product.svg'));
         this.init();
     }
 
-
+    formatMoney(amount) {
+        return `${this.currencyIcon}${parseFloat(amount).toFixed(2)}`;
+    }
 
     init() {
         this.loadCartItems();
         this.loadRecommendedProducts();
-        
 
-
-        // Checkout button
         document.getElementById('checkout-btn').addEventListener('click', () => {
             this.proceedToCheckout();
         });
@@ -238,9 +116,9 @@ class ShoppingCart {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 }
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 this.cart = data.cart_items;
                 this.renderCart();
@@ -271,54 +149,65 @@ class ShoppingCart {
             return;
         }
 
-        cartItemsContainer.style.display = 'block';
+        cartItemsContainer.style.display = 'flex';
         emptyCart.style.display = 'none';
         loginPrompt.style.display = 'none';
         checkoutBtn.disabled = false;
+
         const totalQuantity = this.cart.reduce((sum, item) => {
             const quantity = item.qty || item.quantity || 1;
-            return sum + parseInt(quantity);
+            return sum + parseInt(quantity, 10);
         }, 0);
         cartCount.textContent = totalQuantity;
         this.updateHeaderCartCount(totalQuantity);
 
         cartItemsContainer.innerHTML = this.cart.map(item => {
             const product = item.product || item;
-            const quantity = parseInt(item.qty || item.quantity || 1);
+            const quantity = parseInt(item.qty || item.quantity || 1, 10);
             const itemId = item.id || item.product_id;
-            const productImage = product.thumb_image ? `{{ asset('') }}${product.thumb_image}` : '{{ asset('frontend/images/default-product.svg') }}';
-            const productPrice = product.offer_price || product.price;
-            
+            const productImage = product.thumb_image
+                ? `{{ asset('') }}${product.thumb_image}`
+                : this.defaultProductImage;
+            const unitPrice = parseFloat(product.offer_price || product.price || 0);
+            const lineTotal = unitPrice * quantity;
+            const productSlug = product.slug || '';
+            const productUrl = productSlug ? `/product/${productSlug}` : '{{ route('products') }}';
+            const variantsHtml = item.variants && Array.isArray(item.variants) && item.variants.length > 0
+                ? `<div class="cart-line__variants">${item.variants.map(v => v.name).join(' · ')}</div>`
+                : '';
+
             return `
-                <div class="cart-item" data-id="${itemId}">
-                    <div class="row align-items-center">
-                        <div class="col-12 col-md-2">
-                            <img src="${productImage}" alt="${product.name}" class="img-fluid">
-                        </div>
-                        <div class="col-12 col-md-4 mt-2 mt-md-0">
-                            <h6 class="mb-1">${product.name}</h6>
-                            <small class="text-muted">${product.category?.name || 'No Category'}</small>
-                            ${item.variants && Array.isArray(item.variants) && item.variants.length > 0 ? `<br><small class="text-muted">Variants: ${item.variants.map(v => v.name).join(', ')}</small>` : ''}
-                        </div>
-                        <div class="col-12 col-md-2 mt-2 mt-md-0">
-                            <span class="fw-bold text-primary">$${productPrice}</span>
-                        </div>
-                        <div class="col-12 col-md-3 mt-2 mt-md-0">
-                            <div class="quantity-controls">
-                                <button type="button" class="qty-btn minus-btn" data-item-id="${itemId}" data-action="decrease">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <input type="number" value="${quantity}" min="1" class="qty-input" data-item-id="${itemId}">
-                                <button type="button" class="qty-btn plus-btn" data-item-id="${itemId}" data-action="increase">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-1 text-end mt-2 mt-md-0">
-                            <i class="fas fa-trash remove-item" onclick="cart.removeItem(${itemId})"></i>
-                        </div>
+                <article class="cart-line" data-id="${itemId}">
+                    <a href="${productUrl}" class="cart-line__media">
+                        <img src="${productImage}" alt="${product.name}" onerror="this.src='${this.defaultProductImage}'">
+                    </a>
+                    <div class="cart-line__body">
+                        <h3 class="cart-line__title">
+                            <a href="${productUrl}">${product.name}</a>
+                        </h3>
+                        <div class="cart-line__meta">${product.category?.name || 'Uncategorized'}</div>
+                        ${variantsHtml}
+                        <div class="cart-line__price">${this.formatMoney(unitPrice)} each</div>
                     </div>
-                </div>
+                    <div class="cart-line__actions">
+                        <div class="cart-line__total">
+                            <span>Line total</span>
+                            ${this.formatMoney(lineTotal)}
+                        </div>
+                        <div class="pd-qty-control">
+                            <button type="button" class="qty-btn" data-item-id="${itemId}" data-action="decrease" aria-label="Decrease quantity">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" value="${quantity}" min="1" class="qty-input" data-item-id="${itemId}" aria-label="Quantity">
+                            <button type="button" class="qty-btn" data-item-id="${itemId}" data-action="increase" aria-label="Increase quantity">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="cart-remove-btn" onclick="cart.removeItem(${itemId})" aria-label="Remove item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </article>
             `;
         }).join('');
 
@@ -327,58 +216,40 @@ class ShoppingCart {
     }
 
     attachQuantityEventListeners() {
-        console.log('Attaching quantity event listeners');
-        // Remove existing listeners to prevent duplicates
-        document.querySelectorAll('.qty-btn').forEach(btn => {
-            btn.replaceWith(btn.cloneNode(true));
-        });
-        
-        // Add event listeners for quantity buttons
         document.querySelectorAll('.qty-btn').forEach(button => {
             button.addEventListener('click', (e) => {
-                console.log('Button clicked:', e.target);
-                const itemId = e.target.closest('.qty-btn').dataset.itemId;
-                const action = e.target.closest('.qty-btn').dataset.action;
+                const btn = e.target.closest('.qty-btn');
+                const itemId = btn.dataset.itemId;
+                const action = btn.dataset.action;
                 const input = document.querySelector(`.qty-input[data-item-id="${itemId}"]`);
-                const currentQty = parseInt(input.value);
-                
-                console.log('Button click data:', { itemId, action, currentQty });
-                
+                const currentQty = parseInt(input.value, 10);
+
                 if (action === 'increase') {
-                    console.log('Increasing quantity from', currentQty, 'to', currentQty + 1);
                     this.updateQuantity(itemId, currentQty + 1);
                 } else if (action === 'decrease') {
-                    console.log('Decreasing quantity from', currentQty, 'to', currentQty - 1);
                     this.updateQuantity(itemId, currentQty - 1);
                 }
             });
         });
-        
-        // Add event listeners for quantity inputs
+
         document.querySelectorAll('.qty-input').forEach(input => {
             input.addEventListener('change', (e) => {
-                console.log('Input changed:', e.target.value);
                 const itemId = e.target.dataset.itemId;
-                const newQty = parseInt(e.target.value);
-                console.log('Input change data:', { itemId, newQty });
+                const newQty = parseInt(e.target.value, 10);
                 this.updateQuantity(itemId, newQty);
             });
         });
     }
 
     async updateQuantity(id, quantity) {
-        console.log('updateQuantity called with:', { id, quantity, type: typeof quantity });
-        quantity = parseInt(quantity);
-        console.log('After parseInt:', { id, quantity, type: typeof quantity });
-        
+        quantity = parseInt(quantity, 10);
+
         if (quantity < 1) {
-            console.log('Quantity < 1, removing item');
             this.removeItem(id);
             return;
         }
 
         try {
-            console.log('Sending AJAX request:', { cart_item_id: id, quantity: quantity });
             const response = await fetch('/cart/update', {
                 method: 'POST',
                 headers: {
@@ -390,17 +261,14 @@ class ShoppingCart {
                     quantity: quantity
                 })
             });
-            
-            console.log('Response status:', response.status);
+
             const data = await response.json();
-            console.log('Response data:', data);
-            
+
             if (data.success) {
                 this.loadCartItems();
                 this.showNotification('Cart updated successfully!');
                 this.updateHeaderCartCount(data.cart_count);
             } else {
-                console.error('Update failed:', data.message);
                 this.showNotification(data.message || 'Failed to update cart', 'error');
             }
         } catch (error) {
@@ -421,7 +289,7 @@ class ShoppingCart {
                     cart_item_id: id
                 })
             });
-            
+
             const data = await response.json();
             if (data.success) {
                 this.loadCartItems();
@@ -440,17 +308,13 @@ class ShoppingCart {
         const subtotal = this.cart.reduce((sum, item) => {
             const product = item.product || item;
             const quantity = item.qty || item.quantity || 1;
-            const price = product.offer_price || product.price;
+            const price = parseFloat(product.offer_price || product.price || 0);
             return sum + (price * quantity);
         }, 0);
-        
-        const total = subtotal;
 
-        document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('subtotal').textContent = this.formatMoney(subtotal);
+        document.getElementById('total').textContent = this.formatMoney(subtotal);
     }
-
-
 
     proceedToCheckout() {
         if (this.cart.length === 0) {
@@ -458,70 +322,60 @@ class ShoppingCart {
             return;
         }
 
-        // Redirect to checkout page
         window.location.href = '/checkout';
     }
 
     async loadRecommendedProducts() {
+        const container = document.getElementById('recommended-products');
+
         try {
             const response = await fetch('/api/recommended-products');
             const data = await response.json();
-            
-            if (data.success && data.products) {
-                const container = document.getElementById('recommended-products');
+
+            if (data.success && data.products && data.products.length) {
                 container.innerHTML = data.products.map(product => {
-                    const imageUrl = product.thumb_image ? 
-                        `{{ asset('') }}${product.thumb_image}` : 
-                        '{{ asset('frontend/images/default-product.svg') }}';
+                    const imageUrl = product.thumb_image
+                        ? `{{ asset('') }}${product.thumb_image}`
+                        : this.defaultProductImage;
                     const price = product.offer_price || product.price;
                     const availableStock = (product.qty || 0) - (product.sold_qty || 0);
-                    
+
                     return `
-                        <div class="recommended-product">
-                            <img src="${imageUrl}" alt="${product.name}" onerror="this.src='{{ asset('frontend/images/default-product.svg') }}'">
-                            <div class="product-info">
-                                <div class="product-name">${product.name}</div>
-                                <div class="product-price">{{ $setting->currency_icon ?? '$' }}${price}</div>
+                        <div class="cart-recommend-item">
+                            <img src="${imageUrl}" alt="${product.name}" onerror="this.src='${this.defaultProductImage}'">
+                            <div>
+                                <div class="cart-recommend-item__name">${product.name}</div>
+                                <div class="cart-recommend-item__price">${this.formatMoney(price)}</div>
                             </div>
-                            ${availableStock > 0 ? 
-                                `<button class="btn btn-sm btn-outline-primary" onclick="cart.addRecommendedToCart(${product.id})">
-                                    <i class="fas fa-plus"></i>
-                                </button>` : 
-                                `<span class="badge bg-warning text-dark">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>Stock Out
-                                </span>`
+                            ${availableStock > 0
+                                ? `<button type="button" class="cart-recommend-add" onclick="cart.addRecommendedToCart(${product.id}, this)" aria-label="Add ${product.name} to cart"><i class="fas fa-plus"></i></button>`
+                                : `<span class="badge bg-warning text-dark">Out</span>`
                             }
                         </div>
                     `;
                 }).join('');
             } else {
-                // Fallback to default message if no products found
-                const container = document.getElementById('recommended-products');
-                container.innerHTML = '<p class="text-center">No recommended products available.</p>';
+                container.innerHTML = '<p class="cart-recommend-empty mb-0">No recommendations right now.</p>';
             }
         } catch (error) {
             console.error('Error loading recommended products:', error);
-            // Fallback to default message on error
-            const container = document.getElementById('recommended-products');
-            container.innerHTML = '<p class="text-center">Unable to load recommended products.</p>';
+            container.innerHTML = '<p class="cart-recommend-empty mb-0">Unable to load recommendations.</p>';
         }
     }
 
-    async addRecommendedToCart(productId) {
+    async addRecommendedToCart(productId, buttonEl) {
+        const button = buttonEl;
+        const originalContent = button.innerHTML;
+
         try {
-            // Show loading state
-            const button = event.target;
-            const originalContent = button.innerHTML;
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             button.disabled = true;
 
-            // Prepare form data
             const formData = new FormData();
             formData.append('product_id', productId);
             formData.append('quantity', 1);
             formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
-            // Make AJAX request to add to cart
             const response = await fetch('/cart/add', {
                 method: 'POST',
                 body: formData,
@@ -534,11 +388,9 @@ class ShoppingCart {
 
             if (data.success) {
                 this.showNotification(data.message || 'Product added to cart!', 'success');
-                // Update cart count if available
                 if (data.cart_count !== undefined) {
                     this.updateHeaderCartCount(data.cart_count);
                 }
-                // Reload cart items to reflect changes
                 this.loadCartItems();
             } else {
                 this.showNotification(data.message || 'Failed to add product to cart', 'error');
@@ -547,30 +399,30 @@ class ShoppingCart {
             console.error('Error adding product to cart:', error);
             this.showNotification('An error occurred. Please try again.', 'error');
         } finally {
-            // Restore button state
-            if (event.target) {
-                event.target.innerHTML = originalContent;
-                event.target.disabled = false;
-            }
+            button.innerHTML = originalContent;
+            button.disabled = false;
         }
     }
 
     updateHeaderCartCount(count = null) {
         const cartCountElements = document.querySelectorAll('.cart-count');
-        if (cartCountElements.length) {
-            let value = 0;
-            if (count !== null) {
-                value = count;
-            } else {
-                value = this.cart.reduce((sum, item) => {
-                    const quantity = item.qty || item.quantity || 1;
-                    return sum + parseInt(quantity);
-                }, 0);
-            }
-            cartCountElements.forEach(el => {
-                el.textContent = value;
-            });
+        if (!cartCountElements.length) {
+            return;
         }
+
+        let value = 0;
+        if (count !== null) {
+            value = count;
+        } else {
+            value = this.cart.reduce((sum, item) => {
+                const quantity = item.qty || item.quantity || 1;
+                return sum + parseInt(quantity, 10);
+            }, 0);
+        }
+
+        cartCountElements.forEach(el => {
+            el.textContent = value;
+        });
     }
 
     showNotification(message, type = 'success') {
@@ -582,7 +434,6 @@ class ShoppingCart {
     }
 }
 
-// Initialize cart
 const cart = new ShoppingCart();
 </script>
 @endsection
