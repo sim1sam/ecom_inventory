@@ -1,18 +1,23 @@
 /* Custom CSS for Diamonds Jewelry Website */
 
-/* Root Variables - NOORAANI Elegant Theme */
+/* Root Variables — overridden by admin theme settings in layout */
 :root {
-    --primary-color: #8B7BA8; /* Elegant purple from logo */
-    --secondary-color: #6B6B83; /* Sophisticated gray-purple */
-    --accent-color: #A594C4; /* Light purple accent */
-    --text-dark: #4A4A5C; /* Deep purple-gray */
-    --text-light: #8B8B9A; /* Muted purple-gray */
-    --bg-light: #F7F6FA; /* Very light purple-tinted background */
-    --bg-elegant: #F2F1F6; /* Elegant light background */
-    --border-color: #E5E3EB; /* Subtle purple-tinted border */
-    --shadow: 0 2px 15px rgba(139, 123, 168, 0.15); /* Purple-tinted shadow */
+    --primary-color: #8B7BA8;
+    --secondary-color: #F7F6FA;
+    --accent-color: #A594C4;
+    --background-color: #F7F6FA;
+    --text-dark: #4A4A5C;
+    --text-light: #8B8B9A;
+    --bg-light: #F7F6FA;
+    --bg-elegant: #F2F1F6;
+    --border-color: #E5E3EB;
+    --primary-rgb: 139, 123, 168;
+    --shadow: 0 2px 15px rgba(var(--primary-rgb), 0.15);
     --transition: all 0.3s ease;
-    --gradient-bg: linear-gradient(135deg, #F7F6FA 0%, #F2F1F6 50%, #EAE8F0 100%);
+    --gradient-bg: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-elegant) 50%, var(--light-purple, #EAE8F0) 100%);
+    --statistics-color: #2c3e50;
+    --statistics-font-color: #ffffff;
+    --footer-color: #343a40;
 }
 
 /* Mobile-First Responsive Design */
@@ -533,7 +538,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(135deg, var(--bg-elegant) 0%, var(--bg-light) 50%, rgba(139, 123, 168, 0.1) 100%);
+    background: linear-gradient(135deg, var(--bg-elegant) 0%, var(--bg-light) 50%, rgba(var(--primary-rgb), 0.1) 100%);
     padding: 100px 0;
     position: relative;
     overflow: hidden;
@@ -581,8 +586,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .product-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 16px 40px rgba(139, 123, 168, 0.18);
-    border-color: rgba(139, 123, 168, 0.35);
+    box-shadow: 0 16px 40px rgba(var(--primary-rgb), 0.18);
+    border-color: rgba(var(--primary-rgb), 0.35);
 }
 
 .product-image-container {
@@ -808,7 +813,7 @@ h1, h2, h3, h4, h5, h6 {
     text-decoration: none;
     font-size: 0.95rem;
     transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 14px rgba(139, 123, 168, 0.35);
+    box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.35);
 }
 
 .product-cart-icon-btn:hover:not(.is-disabled) {
@@ -1103,7 +1108,7 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--primary-color);
     border-color: var(--primary-color);
     color: #fff;
-    box-shadow: 0 4px 14px rgba(139, 123, 168, 0.35);
+    box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.35);
 }
 
 .pd-purchase-row {
@@ -1195,7 +1200,7 @@ h1, h2, h3, h4, h5, h6 {
     min-width: 150px;
     background: var(--primary-color);
     color: #fff;
-    box-shadow: 0 4px 14px rgba(139, 123, 168, 0.35);
+    box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.35);
 }
 
 .pd-btn--cart:hover {
@@ -1314,7 +1319,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .pd-tabs-nav .nav-link:hover {
     color: var(--primary-color) !important;
-    border-color: rgba(139, 123, 168, 0.35);
+    border-color: rgba(var(--primary-rgb), 0.35);
 }
 
 .pd-tabs-nav .nav-link.active {
@@ -1624,8 +1629,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .cart-line:hover {
-    border-color: rgba(139, 123, 168, 0.35);
-    box-shadow: 0 8px 24px rgba(139, 123, 168, 0.1);
+    border-color: rgba(var(--primary-rgb), 0.35);
+    box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.1);
 }
 
 .cart-line__media {
@@ -1833,7 +1838,7 @@ h1, h2, h3, h4, h5, h6 {
 .cart-btn--checkout {
     background: var(--primary-color);
     color: #fff;
-    box-shadow: 0 4px 14px rgba(139, 123, 168, 0.35);
+    box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.35);
 }
 
 .cart-btn--checkout:hover:not(:disabled) {
@@ -1969,7 +1974,7 @@ h1, h2, h3, h4, h5, h6 {
     background: rgba(255, 255, 255, 0.9);
     box-shadow: var(--shadow);
     transition: var(--transition);
-    border: 1px solid rgba(139, 123, 168, 0.1);
+    border: 1px solid rgba(var(--primary-rgb), 0.1);
     backdrop-filter: blur(10px);
 }
 
@@ -2013,7 +2018,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: var(--shadow);
     text-align: center;
     transition: var(--transition);
-    border: 1px solid rgba(139, 123, 168, 0.1);
+    border: 1px solid rgba(var(--primary-rgb), 0.1);
     backdrop-filter: blur(10px);
 }
 
@@ -2047,7 +2052,7 @@ h1, h2, h3, h4, h5, h6 {
     overflow: hidden;
     box-shadow: var(--shadow);
     transition: var(--transition);
-    border: 1px solid rgba(139, 123, 168, 0.1);
+    border: 1px solid rgba(var(--primary-rgb), 0.1);
     backdrop-filter: blur(10px);
 }
 
@@ -2137,7 +2142,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Section Backgrounds */
 .bg-light-elegant {
-    background: linear-gradient(135deg, var(--bg-elegant) 0%, rgba(139, 123, 168, 0.05) 100%);
+    background: linear-gradient(135deg, var(--bg-elegant) 0%, rgba(var(--primary-rgb), 0.05) 100%);
 }
 
 .bg-gradient-elegant {
@@ -2544,8 +2549,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .home-category-card:hover {
     transform: translateY(-4px);
-    border-color: rgba(139, 123, 168, 0.35);
-    box-shadow: 0 12px 32px rgba(139, 123, 168, 0.15);
+    border-color: rgba(var(--primary-rgb), 0.35);
+    box-shadow: 0 12px 32px rgba(var(--primary-rgb), 0.15);
     color: inherit;
 }
 
@@ -2693,7 +2698,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .home-hero__img--fallback {
     background:
-        linear-gradient(135deg, #1f1a28 0%, #4a3f5c 42%, #8B7BA8 100%);
+        linear-gradient(135deg, #1f1a28 0%, #4a3f5c 42%, var(--primary-color) 100%);
 }
 
 .home-hero__overlay {
@@ -2789,7 +2794,7 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--primary-color, #8B7BA8);
     color: #fff;
     border: 1px solid transparent;
-    box-shadow: 0 8px 24px rgba(139, 123, 168, 0.35);
+    box-shadow: 0 8px 24px rgba(var(--primary-rgb), 0.35);
 }
 
 .home-hero__btn--primary:hover {
@@ -2838,10 +2843,18 @@ h1, h2, h3, h4, h5, h6 {
     top: 50%;
     transform: translateY(-50%);
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.92);
-    border: none;
-    opacity: 0.95;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    background: rgba(255, 255, 255, 0.42);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    opacity: 1;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.home-hero__nav:hover {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
 }
 
 .home-hero__nav.carousel-control-prev {
@@ -2854,10 +2867,16 @@ h1, h2, h3, h4, h5, h6 {
 
 .home-hero__nav .carousel-control-prev-icon,
 .home-hero__nav .carousel-control-next-icon {
-    width: 1rem;
-    height: 1rem;
-    filter: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    filter: brightness(0) opacity(0.72);
     background-size: 100% 100%;
+    opacity: 1;
+}
+
+.home-hero__nav:hover .carousel-control-prev-icon,
+.home-hero__nav:hover .carousel-control-next-icon {
+    filter: brightness(0) opacity(0.95);
 }
 
 @media (min-width: 992px) {
@@ -2967,9 +2986,15 @@ h1, h2, h3, h4, h5, h6 {
     }
 
     .home-hero__nav {
-        width: 34px;
-        height: 34px;
-        opacity: 0.85;
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.38);
+    }
+
+    .home-hero__nav .carousel-control-prev-icon,
+    .home-hero__nav .carousel-control-next-icon {
+        width: 0.95rem;
+        height: 0.95rem;
     }
 
     .home-hero__nav.carousel-control-prev {

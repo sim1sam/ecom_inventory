@@ -35,7 +35,7 @@
 }
 
 .hero-section {
-    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(139, 123, 168, 0.1) 100%);
+    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(var(--primary-rgb), 0.1) 100%);
     min-height: 60vh;
     display: flex;
     align-items: center;
@@ -167,7 +167,7 @@
 }
 
 .featured-categories {
-    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, rgba(139, 123, 168, 0.05) 100%);
+    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, rgba(var(--primary-rgb), 0.05) 100%);
 }
 
 /* Section Styling */

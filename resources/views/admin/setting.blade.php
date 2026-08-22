@@ -660,11 +660,19 @@
                                                             <div class="form-group">
                                                                 <label for="">{{__('Primary color')}}</label>
                                                                 <input type="color" class="form-control" name="theme_one" value="{{ $setting->theme_one }}">
+                                                                <small class="text-muted">{{ __('Used for buttons, links, active menu, and accents across the site.') }}</small>
                                                             </div>
 
                                                             <div class="form-group">
                                                                 <label for="">{{__('Secondary color')}}</label>
                                                                 <input type="color" class="form-control" name="theme_two" value="{{ $setting->theme_two }}">
+                                                                <small class="text-muted">{{ __('Used for page backgrounds and soft UI surfaces.') }}</small>
+                                                            </div>
+
+                                                            <div class="form-group">
+                                                                <label for="">{{__('Background color')}}</label>
+                                                                <input type="color" class="form-control" name="background_color" value="{{ $setting->background_color ?? $setting->theme_two }}">
+                                                                <small class="text-muted">{{ __('Main site background tint. Accent shades are auto-generated from primary color.') }}</small>
                                                             </div>
 
                                                             <button class="btn btn-primary">{{__('admin.Update')}}</button>

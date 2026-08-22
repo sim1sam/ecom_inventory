@@ -38,3 +38,11 @@ function checkDiscount($product)
 {
     return $product->offer_price && $product->offer_price < $product->price;
 }
+
+/**
+ * Frontend theme CSS variable values from admin settings.
+ */
+function theme_variables($setting = null): array
+{
+    return \App\Helpers\ThemeHelper::variables($setting);
+}

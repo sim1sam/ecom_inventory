@@ -500,7 +500,7 @@
 
 .checkout-address-card.is-selected {
     border-color: var(--primary-color, #8B7BA8);
-    box-shadow: 0 0 0 3px rgba(139, 123, 168, 0.15);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
     background: linear-gradient(180deg, #ffffff 0%, #f8f6fb 100%);
 }
 
@@ -518,7 +518,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(139, 123, 168, 0.12);
+    background: rgba(var(--primary-rgb), 0.12);
     color: var(--primary-color, #8B7BA8);
 }
 
@@ -567,7 +567,7 @@
 }
 
 .checkout-chip--primary {
-    background: rgba(139, 123, 168, 0.16);
+    background: rgba(var(--primary-rgb), 0.16);
     color: var(--primary-color, #8B7BA8);
 }
 
@@ -623,7 +623,7 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 10px;
-    background: rgba(139, 123, 168, 0.12);
+    background: rgba(var(--primary-rgb), 0.12);
     color: var(--primary-color, #8B7BA8);
     font-size: 1rem;
 }
@@ -684,7 +684,7 @@
 
 .btn-check:checked + .checkout-area-btn {
     border-color: var(--primary-color, #8B7BA8);
-    background: rgba(139, 123, 168, 0.12);
+    background: rgba(var(--primary-rgb), 0.12);
     color: var(--primary-color, #8B7BA8);
 }
 

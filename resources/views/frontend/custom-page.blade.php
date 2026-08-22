@@ -7,7 +7,7 @@
 @push('styles')
 <style>
 .custom-page-hero {
-    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(139, 123, 168, 0.1) 100%);
+    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(var(--primary-rgb), 0.1) 100%);
     padding: 80px 0;
     text-align: center;
 }
@@ -18,7 +18,7 @@
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-    border: 1px solid rgba(139, 123, 168, 0.1);
+    border: 1px solid rgba(var(--primary-rgb), 0.1);
     backdrop-filter: blur(6px);
 }
 .custom-page-content h1, .custom-page-content h2, .custom-page-content h3 {

@@ -7,7 +7,7 @@
 @push('styles')
 <style>
 .our-story-hero {
-    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(139, 123, 168, 0.12) 100%);
+    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(var(--primary-rgb), 0.12) 100%);
     padding: 80px 0;
     text-align: center;
 }

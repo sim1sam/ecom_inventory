@@ -113,17 +113,9 @@
 
 <style>
 :root {
-    /* Purple-Gray Jewelry Theme with Gold Buttons */
-    --primary-color: #8B7BA8;     /* Elegant purple */
-    --accent-color: #A294C2;      /* Soft lavender */
-    --light-purple: #C8BFD9;      /* Light purple */
-    --dark-purple: #6B5B73;       /* Deep purple-gray */
-    --diamond-white: #fafafa;     /* Pure white */
-    --pearl-white: #f8f6f0;       /* Warm white */
-    --elegant-gray: #2c2c2c;      /* Dark text */
-    --soft-shadow: rgba(139, 123, 168, 0.2); /* Purple shadow */
-    
-    /* Gold Button Colors */
+    --diamond-white: #fafafa;
+    --pearl-white: var(--bg-light, #f8f6f0);
+    --elegant-gray: var(--text-dark, #2c2c2c);
     --primary-gold: var(--primary-color);
     --light-gold: var(--accent-color);
     --dark-gold: var(--dark-purple);
@@ -147,8 +139,8 @@
     right: 0;
     bottom: 0;
     background-image: 
-        radial-gradient(circle at 20% 80%, rgba(139, 123, 168, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(139, 123, 168, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, rgba(var(--primary-rgb), 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(var(--primary-rgb), 0.1) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
     pointer-events: none;
 }
@@ -162,7 +154,7 @@
         0 0 0 1px var(--soft-shadow),
         inset 0 1px 0 rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(20px);
-    border: 2px solid rgba(139, 123, 168, 0.2);
+    border: 2px solid rgba(var(--primary-rgb), 0.2);
     position: relative;
     overflow: hidden;
 }

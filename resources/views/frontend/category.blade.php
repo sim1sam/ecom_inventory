@@ -327,7 +327,7 @@ body.category-page .main-content {
 }
 
 .category-hero-banner--plain .category-hero-banner__badge {
-    background: rgba(139, 123, 168, 0.14);
+    background: rgba(var(--primary-rgb), 0.14);
     color: #6f5f8c;
 }
 

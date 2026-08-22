@@ -7,13 +7,13 @@
 @push('styles')
 <style>
 .faq-hero {
-    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(139, 123, 168, 0.1) 100%);
+    background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(var(--primary-rgb), 0.1) 100%);
     padding: 80px 0;
     text-align: center;
 }
 
 .faq-section { padding: 60px 0; }
-.faq-card { border: 1px solid rgba(139, 123, 168, 0.15); border-radius: 8px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); }
+.faq-card { border: 1px solid rgba(var(--primary-rgb), 0.15); border-radius: 8px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); }
 .faq-card .card-header { background: rgba(255,255,255,0.9); }
 .faq-card .card-header a { color: #333; font-weight: 600; display: block; }
 .faq-card .card-body { background: rgba(255,255,255,0.95); line-height: 1.8; color: #555; }

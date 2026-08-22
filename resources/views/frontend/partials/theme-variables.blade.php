@@ -1,0 +1,30 @@
+@php
+    use App\Helpers\ThemeHelper;
+
+    $theme = ThemeHelper::variables($setting ?? null);
+    $footerColor = $footer->footer_color ?? '#343a40';
+@endphp
+<style>
+    :root {
+        --primary-color: {{ $theme['primary'] }};
+        --secondary-color: {{ $theme['secondary'] }};
+        --accent-color: {{ $theme['accent'] }};
+        --background-color: {{ $theme['background'] }};
+        --text-dark: {{ $theme['text_dark'] }};
+        --text-light: {{ $theme['text_light'] }};
+        --bg-light: {{ $theme['bg_light'] }};
+        --bg-elegant: {{ $theme['bg_elegant'] }};
+        --border-color: {{ $theme['border_color'] }};
+        --shadow: {{ $theme['shadow'] }};
+        --gradient-bg: {{ $theme['gradient_bg'] }};
+        --dark-purple: {{ $theme['dark_purple'] }};
+        --soft-shadow: {{ $theme['soft_shadow'] }};
+        --pearl-white: #ffffff;
+        --light-purple: {{ $theme['light_purple'] }};
+        --primary-rgb: {{ $theme['primary_rgb'] }};
+        --statistics-color: {{ $theme['statistics_color'] }};
+        --statistics-font-color: {{ $theme['statistics_font_color'] }};
+        --footer-color: {{ $footerColor }};
+        --transition: all 0.3s ease;
+    }
+</style>

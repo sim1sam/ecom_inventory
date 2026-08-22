@@ -7,7 +7,7 @@
 @push('styles')
 <style>
 .about-hero {
-        background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(139, 123, 168, 0.1) 100%);
+        background: linear-gradient(135deg, var(--bg-elegant, #f8f9fa) 0%, var(--bg-light, #ffffff) 50%, rgba(var(--primary-rgb), 0.1) 100%);
         padding: 80px 0;
         text-align: center;
     }
@@ -23,7 +23,7 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
     background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(139, 123, 168, 0.1);
+    border: 1px solid rgba(var(--primary-rgb), 0.1);
     backdrop-filter: blur(10px);
     transition: transform 0.3s ease;
 }

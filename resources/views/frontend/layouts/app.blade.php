@@ -17,7 +17,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="format-detection" content="telephone=no">
-    <meta name="theme-color" content="{{ $setting->theme_one ?? '#8B7BA8' }}">
+    <meta name="theme-color" content="{{ theme_variables($setting)['primary'] }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>@yield('title', isset($seoSetting) ? $seoSetting->seo_title : 'Diamonds Jewellery Collection')</title>
@@ -89,24 +89,10 @@
     <link rel="stylesheet" href="{{ asset('frontend/css/style.css') }}?v={{ filemtime(public_path('frontend/css/style.css')) }}">
     <link rel="stylesheet" href="{{ asset('frontend/css/mobile-app.css') }}?v={{ filemtime(public_path('frontend/css/mobile-app.css')) }}">
     
-    <!-- Dynamic Theme Colors - NOORAANI Elegant Theme -->
+    <!-- Dynamic Theme Colors from Admin Settings -->
+    @include('frontend.partials.theme-variables')
+
     <style>
-        :root {
-            --primary-color: {{ $setting->theme_one ?? '#8B7BA8' }}; /* Elegant purple from logo */
-            --secondary-color: {{ $setting->theme_two ?? '#F7F6FA' }}; /* Light purple-tinted background */
-            --statistics-color: {{ $setting->statistics_color ?? '#6B6B83' }}; /* Sophisticated gray-purple */
-            --statistics-font-color: {{ $setting->statistics_font_color ?? '#ffffff' }};
-            --accent-color: #A594C4; /* Light purple accent */
-            --text-dark: #4A4A5C; /* Deep purple-gray */
-            --bg-elegant: #F2F1F6; /* Elegant light background */
-            --gradient-bg: linear-gradient(135deg, #F7F6FA 0%, #F2F1F6 50%, #EAE8F0 100%);
-            /* Added theme support variables used by auth pages */
-            --dark-purple: #6B4E9D; /* Deep complementary purple */
-            --soft-shadow: rgba(139, 123, 168, 0.25); /* Soft purple shadow */
-            --pearl-white: #ffffff; /* For light gradient accents */
-            --light-purple: #EAE8F0; /* Light purple tint */
-        }
-        
         /* Enhanced Background Styling */
         body {
             background: var(--gradient-bg) !important;
@@ -145,7 +131,7 @@
             z-index: 9999 !important;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            box-shadow: 0 2px 15px rgba(139, 123, 168, 0.15);
+            box-shadow: 0 2px 15px rgba(var(--primary-rgb), 0.15);
         }
         
         /* Prevent mobile action buttons from moving during menu toggle */
@@ -1048,7 +1034,7 @@
     </main>
     
     <!-- Footer -->
-    <footer class="footer text-white mt-5" style="background-color: {{ $footer->footer_color ?? '#343a40' }};">
+    <footer class="footer text-white mt-5" style="background-color: var(--footer-color, {{ $footer->footer_color ?? '#343a40' }});">
         <div class="container py-5">
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-4">
