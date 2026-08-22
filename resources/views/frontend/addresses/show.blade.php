@@ -78,30 +78,10 @@
 
                                 <div class="row mb-3">
                                     <div class="col-sm-4">
-                                        <strong>City:</strong>
+                                        <strong>Delivery Area:</strong>
                                     </div>
                                     <div class="col-sm-8">
-                                        {{ $address->city->name ?? 'N/A' }}
-                                    </div>
-                                </div>
-
-                                @if($address->zip_code)
-                                <div class="row mb-3">
-                                    <div class="col-sm-4">
-                                        <strong>ZIP Code:</strong>
-                                    </div>
-                                    <div class="col-sm-8">
-                                        {{ $address->zip_code }}
-                                    </div>
-                                </div>
-                                @endif
-
-                                <div class="row mb-3">
-                                    <div class="col-sm-4">
-                                        <strong>State:</strong>
-                                    </div>
-                                    <div class="col-sm-8">
-                                        {{ $address->countryState->name ?? 'N/A' }}
+                                        {{ ($address->delivery_area ?? 'inside') === 'outside' ? 'Outside' : 'Inside' }}
                                     </div>
                                 </div>
 
@@ -110,7 +90,7 @@
                                         <strong>Country:</strong>
                                     </div>
                                     <div class="col-sm-8">
-                                        {{ $address->country->name ?? 'N/A' }}
+                                        Bangladesh
                                     </div>
                                 </div>
                             </div>

@@ -42,11 +42,7 @@ class AddressController extends Controller
      */
     public function create()
     {
-        $countries = Country::where('status', 1)
-            ->orderBy('name', 'asc')
-            ->get();
-
-        return view('frontend.addresses.create', compact('countries'));
+        return view('frontend.addresses.create');
     }
 
     /**
@@ -61,28 +57,27 @@ class AddressController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
-            'country' => 'required|exists:countries,id',
-            'state' => 'required|exists:country_states,id',
-            'city' => 'required|exists:cities,id',
-            'address' => 'required|string|max:500',
-            'zip_code' => 'nullable|string|max:20',
+            'address' => 'required|string|max:1000',
             'type' => 'required|in:home,office,other',
+            'delivery_area' => 'required|in:inside,outside',
         ]);
 
         $user = Auth::user();
         $isExist = Address::where('user_id', $user->id)->count();
+        $bangladeshId = Country::where('name', 'like', 'Bangladesh%')->value('id');
 
         $address = new Address();
         $address->user_id = auth()->id();
         $address->name = $request->name;
         $address->email = $request->email;
         $address->phone = $request->phone;
-        $address->country_id = $request->country;
-        $address->state_id = $request->state;
-        $address->city_id = $request->city;
+        $address->country_id = $bangladeshId;
+        $address->state_id = null;
+        $address->city_id = null;
         $address->address = $request->address;
-        $address->zip_code = $request->zip_code;
+        $address->zip_code = null;
         $address->type = $request->type;
+        $address->delivery_area = $request->delivery_area;
         $address->default_shipping = $isExist > 0 ? 0 : 1;
         $address->default_billing = $isExist > 0 ? 0 : 1;
         $address->save();
@@ -121,21 +116,7 @@ class AddressController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
-        $countries = Country::where('status', 1)
-            ->orderBy('name', 'asc')
-            ->get();
-
-        $states = CountryState::where('status', 1)
-            ->where('country_id', $address->country_id)
-            ->orderBy('name', 'asc')
-            ->get();
-
-        $cities = City::where('status', 1)
-            ->where('country_state_id', $address->state_id)
-            ->orderBy('name', 'asc')
-            ->get();
-
-        return view('frontend.addresses.edit', compact('address', 'countries', 'states', 'cities'));
+        return view('frontend.addresses.edit', compact('address'));
     }
 
     /**
@@ -151,12 +132,9 @@ class AddressController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
-            'country' => 'required|exists:countries,id',
-            'state' => 'required|exists:country_states,id',
-            'city' => 'required|exists:cities,id',
-            'address' => 'required|string|max:500',
-            'zip_code' => 'nullable|string|max:20',
+            'address' => 'required|string|max:1000',
             'type' => 'required|in:home,office,other',
+            'delivery_area' => 'required|in:inside,outside',
         ]);
 
         $user = Auth::user();
@@ -164,15 +142,18 @@ class AddressController extends Controller
             ->where('id', $id)
             ->firstOrFail();
 
+        $bangladeshId = Country::where('name', 'like', 'Bangladesh%')->value('id');
+
         $address->name = $request->name;
         $address->email = $request->email;
         $address->phone = $request->phone;
         $address->address = $request->address;
-        $address->zip_code = $request->zip_code;
-        $address->country_id = $request->country;
-        $address->state_id = $request->state;
-        $address->city_id = $request->city;
+        $address->zip_code = null;
+        $address->country_id = $bangladeshId;
+        $address->state_id = null;
+        $address->city_id = null;
         $address->type = $request->type;
+        $address->delivery_area = $request->delivery_area;
         $address->save();
 
         return redirect()->route('addresses.index')

@@ -564,10 +564,19 @@ class PaypalController extends Controller
             $orderProduct->qty = $cartProduct->qty;
             $orderProduct->save();
 
-            // update product stock
-            $qty = $product->qty - $cartProduct->qty;
-            $product->qty = $qty;
-            $product->save();
+            try {
+                app(\App\Services\StockService::class)->deductForSale(
+                    (int) $product->id,
+                    (int) $cartProduct->qty,
+                    $order->order_id,
+                    null,
+                    'order',
+                    (int) $order->id
+                );
+            } catch (\InvalidArgumentException $e) {
+                $product->qty = max(0, (int) $product->qty - (int) $cartProduct->qty);
+                $product->save();
+            }
 
             // return $cartProduct->variants;
             foreach($cartProduct->variants as $index => $variant){

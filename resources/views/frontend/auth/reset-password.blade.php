@@ -359,17 +359,6 @@ function checkPasswordMatch() {
     }
 }
 
-// Show success/error messages
-@if(session('messege'))
-    setTimeout(function() {
-        const alert = document.querySelector('.alert');
-        if (alert) {
-            alert.style.opacity = '0';
-            setTimeout(() => alert.remove(), 300);
-        }
-    }, 5000);
-@endif
-
 // Auto-focus password input
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('password').focus();

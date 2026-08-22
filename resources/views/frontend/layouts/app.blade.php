@@ -1022,41 +1022,8 @@
         </div>
     </header>
     
-    <!-- Messages -->
-    <div class="container mt-3">
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if(session('messege'))
-            <div class="alert alert-{{ session('alert-type') }} alert-dismissible fade show" role="alert">
-                {{ session('messege') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <ul class="mb-0">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-    </div>
-
+    <!-- Flash messages are shown as toast popups (see script below) -->
+    
     <!-- Main Content -->
     <main class="main-content">
         @yield('content')
@@ -1178,7 +1145,36 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Custom JS -->
-    <script src="{{ asset('frontend/js/app.js') }}"></script>
+    <script src="{{ asset('frontend/js/app.js') }}?v={{ filemtime(public_path('frontend/js/app.js')) }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if(session('success'))
+                showNotification(@json(session('success')), 'success');
+            @endif
+
+            @if(session('error'))
+                showNotification(@json(session('error')), 'error');
+            @endif
+
+            @if(session('warning'))
+                showNotification(@json(session('warning')), 'warning');
+            @endif
+
+            @if(session('info'))
+                showNotification(@json(session('info')), 'info');
+            @endif
+
+            @if(session('messege'))
+                showNotification(@json(session('messege')), @json(session('alert-type', 'info')));
+            @endif
+
+            @if($errors->any())
+                @foreach($errors->all() as $error)
+                    showNotification(@json($error), 'error');
+                @endforeach
+            @endif
+        });
+    </script>
     
     <!-- Fix dropdown conflicts -->
     <script>

@@ -15,6 +15,8 @@ use App\Models\CountryState;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Footer;
+use App\Models\Address;
 
 class OrderController extends Controller
 {
@@ -104,9 +106,61 @@ class OrderController extends Controller
         $brands = Brand::all();
         $products = Product::where('status',1)->where('vendor_id',0)->get();
         $categories = Category::with('subCategories','products')->get();
-        $order = Order::with('user','orderProducts.orderProductVariants','orderAddress')->find($id);
+        $order = Order::with('user','orderProducts.orderProductVariants','orderAddress')->findOrFail($id);
         $setting = Setting::first();
-        return view('admin.show_order',compact('order','setting','countries','city','state','brands','categories','products'));
+        $footer = Footer::first();
+        $customerDefaultAddress = null;
+        if ($order->user_id) {
+            $customerDefaultAddress = Address::with(['country', 'countryState', 'city'])
+                ->where('user_id', $order->user_id)
+                ->orderByDesc('default_billing')
+                ->orderByDesc('default_shipping')
+                ->first();
+        }
+        return view('admin.show_order',compact('order','setting','footer','countries','city','state','brands','categories','products','customerDefaultAddress'));
+    }
+
+    public function updateOrderAddress(Request $request, $id)
+    {
+        $rules = [
+            'billing_address' => 'required|string|max:1000',
+            'delivery_area' => 'required|in:inside,outside',
+        ];
+        $this->validate($request, $rules);
+
+        $order = Order::with('user')->findOrFail($id);
+        $address = OrderAddress::firstOrNew(['order_id' => $order->id]);
+        $customer = $order->user;
+
+        $name = $address->billing_name ?: ($customer->name ?? 'Customer');
+        $email = $address->billing_email ?: ($customer->email ?? null);
+        $phone = $address->billing_phone ?: ($customer->phone ?? null);
+        $line = $request->billing_address;
+        $area = $request->delivery_area;
+
+        $address->billing_name = $name;
+        $address->billing_email = $email;
+        $address->billing_phone = $phone;
+        $address->billing_address = $line;
+        $address->billing_country = 'Bangladesh';
+        $address->billing_state = null;
+        $address->billing_city = null;
+        $address->billing_address_type = $area;
+        $address->shipping_name = $name;
+        $address->shipping_email = $email;
+        $address->shipping_phone = $phone;
+        $address->shipping_address = $line;
+        $address->shipping_country = 'Bangladesh';
+        $address->shipping_state = null;
+        $address->shipping_city = null;
+        $address->shipping_address_type = $area;
+        $address->delivery_area = $area;
+        $address->order_id = $order->id;
+        $address->save();
+
+        $notification = trans('admin.Address updated successfully');
+        $notification = array('messege' => $notification, 'alert-type' => 'success');
+        return redirect()->back()->with($notification);
     }
 
     public function updateOrderStatus(Request $request , $id){

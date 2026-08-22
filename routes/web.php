@@ -870,6 +870,7 @@ Route::group(['as'=> 'admin.', 'prefix' => 'admin'],function (){
     Route::get('declined-order', [OrderController::class, 'declinedOrder'])->name('declined-order');
     Route::get('cash-on-delivery', [OrderController::class, 'cashOnDelivery'])->name('cash-on-delivery');
     Route::get('order-show/{id}', [OrderController::class, 'show'])->name('order-show');
+    Route::put('order-address/{id}', [OrderController::class, 'updateOrderAddress'])->name('order-address.update');
     Route::delete('delete-order/{id}', [OrderController::class, 'destroy'])->name('delete-order');
     Route::put('update-order-status/{id}', [OrderController::class, 'updateOrderStatus'])->name('update-order-status');
 
@@ -979,6 +980,9 @@ Route::group(['as'=> 'admin.', 'prefix' => 'admin'],function (){
     Route::get('/pos/product/cart/decrement/delete/{id}', [PosController::class, 'cartDecrement'])->name('pos.cart.decrement.product');
     Route::get('/pos/product/cart/clear', [PosController::class, 'clearCart'])->name('pos.cart.clear.product');
     Route::post('/pos/add/customer', [PosController::class, 'addCustomer'])->name('pos.add.customer');
+    Route::get('/pos/customers/search', [PosController::class, 'searchCustomers'])->name('pos.customer.search');
+    Route::post('/pos/customer/select', [PosController::class, 'selectCustomer'])->name('pos.customer.select');
+    Route::get('/pos/customer/{id}/address', [PosController::class, 'customerAddress'])->name('pos.customer.address');
     Route::get('/pos/apply/cupon', [PosController::class, 'applyCupon'])->name('pos.apply.cupon');
     Route::post('/pos/order/submit', [PosController::class, 'orderSubmit'])->name('pos.order.submit');
     Route::get('/pos/bulk/order', [PosController::class, 'bulkOrder'])->name('pos.bulk.order');

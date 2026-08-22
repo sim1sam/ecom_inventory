@@ -185,11 +185,13 @@ class CheckoutController extends Controller
                 }
             }
             
-            // Get user addresses if authenticated
+            // Get user addresses if authenticated (default first)
             $addresses = [];
             if ($user) {
-                $addresses = Address::with('country','countryState','city')
-                    ->where(['user_id' => $user->id])
+                $addresses = Address::with('country')
+                    ->where('user_id', $user->id)
+                    ->orderByDesc('default_billing')
+                    ->orderByDesc('default_shipping')
                     ->get();
             }
             
@@ -389,14 +391,12 @@ class CheckoutController extends Controller
         // Validate request data
         $validatedData = $request->validate([
             'billing_first_name' => 'required|string|max:255',
-            'billing_last_name' => 'required|string|max:255',
+            'billing_last_name' => 'nullable|string|max:255',
             'billing_email' => 'required|email|max:255',
             'billing_phone' => 'required|string|max:20',
-            'billing_address' => 'required|string|max:500',
-            'billing_city' => 'required|integer|exists:cities,id',
-            'billing_state' => 'required|integer|exists:country_states,id',
-            'billing_zip' => 'required|string|max:20',
-            'billing_country' => 'required|integer|exists:countries,id',
+            'billing_address' => 'required|string|max:1000',
+            'billing_delivery_area' => 'required|in:inside,outside',
+            'billing_country' => 'nullable|integer|exists:countries,id',
             'shipping_method' => 'required|exists:shippings,id',
             'payment_method' => 'required|in:cash_on_delivery,credit_card,paypal,stripe,pay_later,razorpay,flutterwave,mollie,instamojo,paystack,sslcommerz,bank_payment',
             'same_as_billing' => 'nullable|boolean',
@@ -404,10 +404,8 @@ class CheckoutController extends Controller
             'shipping_last_name' => 'nullable|string|max:255',
             'shipping_email' => 'nullable|email|max:255',
             'shipping_phone' => 'nullable|string|max:20',
-            'shipping_address' => 'nullable|string|max:500',
-            'shipping_city' => 'nullable|integer|exists:cities,id',
-            'shipping_state' => 'nullable|integer|exists:country_states,id',
-            'shipping_zip' => 'nullable|string|max:20',
+            'shipping_address' => 'nullable|string|max:1000',
+            'shipping_delivery_area' => 'nullable|in:inside,outside',
             'shipping_country' => 'nullable|integer|exists:countries,id',
             'order_notes' => 'nullable|string|max:1000'
         ]);
@@ -577,11 +575,20 @@ class CheckoutController extends Controller
             $orderProduct->qty = is_object($cartItem) ? $cartItem->qty : $cartItem['qty'];
             $orderProduct->save();
 
-            // Update product stock
             $cartQty = is_object($cartItem) ? $cartItem->qty : $cartItem['qty'];
-            $qty = $product->qty - $cartQty;
-            $product->qty = $qty;
-            $product->save();
+            try {
+                app(\App\Services\StockService::class)->deductForSale(
+                    (int) $product->id,
+                    (int) $cartQty,
+                    $order->order_id,
+                    null,
+                    'order',
+                    (int) $order->id
+                );
+            } catch (\InvalidArgumentException $e) {
+                $product->qty = max(0, (int) $product->qty - (int) $cartQty);
+                $product->save();
+            }
 
             // Store product variants
             if ($variants && (is_array($variants) || $variants instanceof \Illuminate\Support\Collection)) {
@@ -617,17 +624,18 @@ class CheckoutController extends Controller
                 $orderAddress->billing_email = $billing->email;
                 $orderAddress->billing_phone = $billing->phone;
                 $orderAddress->billing_address = $billing->address;
-                $orderAddress->billing_country = $billing->country->name ?? '';
-                $orderAddress->billing_state = $billing->countryState->name ?? '';
-                $orderAddress->billing_city = $billing->city->name ?? '';
+                $orderAddress->billing_country = $billing->country->name ?? 'Bangladesh';
+                $orderAddress->billing_state = '';
+                $orderAddress->billing_city = '';
                 $orderAddress->billing_address_type = $billing->type ?? '';
+                $orderAddress->delivery_area = $billing->delivery_area ?? 'inside';
                 $orderAddress->shipping_name = $shipping_addr->name;
                 $orderAddress->shipping_email = $shipping_addr->email;
                 $orderAddress->shipping_phone = $shipping_addr->phone;
                 $orderAddress->shipping_address = $shipping_addr->address;
-                $orderAddress->shipping_country = $shipping_addr->country->name ?? '';
-                $orderAddress->shipping_state = $shipping_addr->countryState->name ?? '';
-                $orderAddress->shipping_city = $shipping_addr->city->name ?? '';
+                $orderAddress->shipping_country = $shipping_addr->country->name ?? 'Bangladesh';
+                $orderAddress->shipping_state = '';
+                $orderAddress->shipping_city = '';
                 $orderAddress->shipping_address_type = $shipping_addr->type ?? '';
                 $orderAddress->save();
             }
@@ -927,46 +935,51 @@ class CheckoutController extends Controller
     {
         $orderAddress = new OrderAddress();
         $orderAddress->order_id = $order->id;
-        
-        // Get location names from IDs
-        $billingCountry = Country::find($validatedData['billing_country']);
-        $billingState = CountryState::find($validatedData['billing_state']);
-        $billingCity = City::find($validatedData['billing_city']);
-        
+
+        $billingCountry = !empty($validatedData['billing_country'])
+            ? Country::find($validatedData['billing_country'])
+            : Country::where('name', 'like', 'Bangladesh%')->first();
+        $billingCountryName = $billingCountry ? $billingCountry->name : 'Bangladesh';
+        $billingArea = $validatedData['billing_delivery_area'] ?? 'inside';
+        $billingFirst = $validatedData['billing_first_name'] ?? '';
+        $billingLast = trim((string) ($validatedData['billing_last_name'] ?? ''));
+        $billingName = trim($billingFirst . ($billingLast !== '' && $billingLast !== '-' ? ' ' . $billingLast : ''));
+
         // Billing information
-        $orderAddress->billing_name = $validatedData['billing_first_name'] . ' ' . $validatedData['billing_last_name'];
+        $orderAddress->billing_name = $billingName !== '' ? $billingName : $billingFirst;
         $orderAddress->billing_email = $validatedData['billing_email'];
         $orderAddress->billing_phone = $validatedData['billing_phone'];
         $orderAddress->billing_address = $validatedData['billing_address'];
-        $orderAddress->billing_country = $billingCountry ? $billingCountry->name : '';
-        $orderAddress->billing_state = $billingState ? $billingState->name : '';
-        $orderAddress->billing_city = $billingCity ? $billingCity->name : '';
+        $orderAddress->billing_country = $billingCountryName;
+        $orderAddress->billing_state = '';
+        $orderAddress->billing_city = '';
         $orderAddress->billing_address_type = 'billing';
-        
+        $orderAddress->delivery_area = $billingArea;
+
         // Shipping information
-        if (isset($validatedData['same_as_billing']) && $validatedData['same_as_billing']) {
-            $orderAddress->shipping_name = $validatedData['billing_first_name'] . ' ' . $validatedData['billing_last_name'];
-            $orderAddress->shipping_email = $validatedData['billing_email'];
-            $orderAddress->shipping_phone = $validatedData['billing_phone'];
-            $orderAddress->shipping_address = $validatedData['billing_address'];
-            $orderAddress->shipping_country = $billingCountry ? $billingCountry->name : '';
-            $orderAddress->shipping_state = $billingState ? $billingState->name : '';
-            $orderAddress->shipping_city = $billingCity ? $billingCity->name : '';
+        if (!empty($validatedData['same_as_billing'])) {
+            $orderAddress->shipping_name = $orderAddress->billing_name;
+            $orderAddress->shipping_email = $orderAddress->billing_email;
+            $orderAddress->shipping_phone = $orderAddress->billing_phone;
+            $orderAddress->shipping_address = $orderAddress->billing_address;
+            $orderAddress->shipping_country = $billingCountryName;
+            $orderAddress->shipping_state = '';
+            $orderAddress->shipping_city = '';
         } else {
-            $shippingCountry = Country::find($validatedData['shipping_country'] ?? $validatedData['billing_country']);
-            $shippingState = CountryState::find($validatedData['shipping_state'] ?? $validatedData['billing_state']);
-            $shippingCity = City::find($validatedData['shipping_city'] ?? $validatedData['billing_city']);
-            
-            $orderAddress->shipping_name = ($validatedData['shipping_first_name'] ?? $validatedData['billing_first_name']) . ' ' . ($validatedData['shipping_last_name'] ?? $validatedData['billing_last_name']);
+            $shippingCountry = !empty($validatedData['shipping_country'])
+                ? Country::find($validatedData['shipping_country'])
+                : $billingCountry;
+            $orderAddress->shipping_name = trim(($validatedData['shipping_first_name'] ?? $validatedData['billing_first_name']) . ' ' . ($validatedData['shipping_last_name'] ?? $validatedData['billing_last_name']));
             $orderAddress->shipping_email = $validatedData['shipping_email'] ?? $validatedData['billing_email'];
             $orderAddress->shipping_phone = $validatedData['shipping_phone'] ?? $validatedData['billing_phone'];
             $orderAddress->shipping_address = $validatedData['shipping_address'] ?? $validatedData['billing_address'];
-            $orderAddress->shipping_country = $shippingCountry ? $shippingCountry->name : '';
-            $orderAddress->shipping_state = $shippingState ? $shippingState->name : '';
-            $orderAddress->shipping_city = $shippingCity ? $shippingCity->name : '';
+            $orderAddress->shipping_country = $shippingCountry ? $shippingCountry->name : $billingCountryName;
+            $orderAddress->shipping_state = '';
+            $orderAddress->shipping_city = '';
+            $orderAddress->delivery_area = $validatedData['shipping_delivery_area'] ?? $billingArea;
         }
         $orderAddress->shipping_address_type = 'shipping';
-        
+
         $orderAddress->save();
     }
 
@@ -1968,10 +1981,19 @@ class CheckoutController extends Controller
             $orderProduct->qty = $cartProduct->qty;
             $orderProduct->save();
 
-            // Update product stock
-            $qty = $product->qty - $cartProduct->qty;
-            $product->qty = $qty;
-            $product->save();
+            try {
+                app(\App\Services\StockService::class)->deductForSale(
+                    (int) $product->id,
+                    (int) $cartProduct->qty,
+                    $order->order_id,
+                    null,
+                    'order',
+                    (int) $order->id
+                );
+            } catch (\InvalidArgumentException $e) {
+                $product->qty = max(0, (int) $product->qty - (int) $cartProduct->qty);
+                $product->save();
+            }
 
             // Store product variants
             if ($cartProduct->variants) {
@@ -2006,17 +2028,18 @@ class CheckoutController extends Controller
         $orderAddress->billing_email = $billing->email;
         $orderAddress->billing_phone = $billing->phone;
         $orderAddress->billing_address = $billing->address;
-        $orderAddress->billing_country = $billing->country->name;
-        $orderAddress->billing_state = $billing->countryState->name;
-        $orderAddress->billing_city = $billing->city->name;
+        $orderAddress->billing_country = $billing->country->name ?? 'Bangladesh';
+        $orderAddress->billing_state = '';
+        $orderAddress->billing_city = '';
         $orderAddress->billing_address_type = $billing->type;
+        $orderAddress->delivery_area = $billing->delivery_area ?? 'inside';
         $orderAddress->shipping_name = $shipping_addr->name;
         $orderAddress->shipping_email = $shipping_addr->email;
         $orderAddress->shipping_phone = $shipping_addr->phone;
         $orderAddress->shipping_address = $shipping_addr->address;
-        $orderAddress->shipping_country = $shipping_addr->country->name;
-        $orderAddress->shipping_state = $shipping_addr->countryState->name;
-        $orderAddress->shipping_city = $shipping_addr->city->name;
+        $orderAddress->shipping_country = $shipping_addr->country->name ?? 'Bangladesh';
+        $orderAddress->shipping_state = '';
+        $orderAddress->shipping_city = '';
         $orderAddress->shipping_address_type = $shipping_addr->type;
         $orderAddress->save();
 

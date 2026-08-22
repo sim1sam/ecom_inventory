@@ -523,19 +523,27 @@ class FrontendController extends Controller
 
     public function checkout()
     {
-        $countries = \App\Models\Country::where('status', 1)->get();
-        $states = \App\Models\CountryState::where('status', 1)->get();
-        $cities = \App\Models\City::where('status', 1)->get();
         $shippingMethods = \App\Models\Shipping::all();
-        
-        // Get user addresses if authenticated
+        $bangladeshCountryId = \App\Models\Country::where('name', 'like', 'Bangladesh%')->value('id');
+
+        // Get user addresses if authenticated (default billing/shipping first)
         $addresses = collect();
+        $defaultAddressIndex = null;
         if (auth()->check()) {
-            $addresses = \App\Models\Address::with('country','countryState','city')
-                ->where(['user_id' => auth()->id()])
+            $addresses = \App\Models\Address::with('country')
+                ->where('user_id', auth()->id())
+                ->orderByDesc('default_billing')
+                ->orderByDesc('default_shipping')
                 ->get();
+
+            if ($addresses->isNotEmpty()) {
+                $default = $addresses->firstWhere('default_billing', 1)
+                    ?? $addresses->firstWhere('default_shipping', 1)
+                    ?? $addresses->first();
+                $defaultAddressIndex = $addresses->search(fn ($a) => $a->id === $default->id);
+            }
         }
-        
+
         // Get payment gateway settings
         $stripe_setting = \App\Models\StripePayment::first();
         $paypal_setting = \App\Models\PaypalPayment::first();
@@ -546,13 +554,12 @@ class FrontendController extends Controller
         $paystack_setting = \App\Models\PaystackAndMollie::first();
         $sslcommerz_setting = \App\Models\SslcommerzPayment::first();
         $bank_payment_setting = \App\Models\BankPayment::first();
-        
+
         return view('frontend.checkout', compact(
-            'countries', 
-            'states', 
-            'cities', 
-            'shippingMethods', 
+            'shippingMethods',
             'addresses',
+            'defaultAddressIndex',
+            'bangladeshCountryId',
             'stripe_setting',
             'paypal_setting',
             'razorpay_setting',

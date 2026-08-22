@@ -16,104 +16,163 @@
 
     <div class="row">
         <div class="col-lg-8">
-            <form id="checkout-form" action="{{ route('checkout.place-order') }}" method="POST">
+            @if ($errors->any())
+                {{-- validation toasts are shown from layout --}}
+            @endif
+            <form id="checkout-form" action="{{ route('checkout.place-order') }}" method="POST" novalidate>
                 @csrf
                 
                 <!-- Billing Information -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Billing Information</h5>
+                @php
+                    $hasSavedAddresses = auth()->check() && isset($addresses) && $addresses->count() > 0;
+                    $defaultIdx = $defaultAddressIndex ?? 0;
+                    $bdCountryId = $bangladeshCountryId ?? '';
+                    $defaultAddress = $hasSavedAddresses ? ($addresses[$defaultIdx] ?? $addresses->first()) : null;
+                    $defaultNameParts = $defaultAddress ? preg_split('/\s+/', trim($defaultAddress->name ?? ''), 2) : ['', ''];
+                @endphp
+                <div class="card checkout-section-card mb-4">
+                    <div class="card-header checkout-section-header">
+                        <div>
+                            <h5 class="mb-0">Billing Address</h5>
+                            <small class="text-muted">Select a delivery address or add a new one</small>
+                        </div>
                     </div>
                     <div class="card-body">
                         @auth
-                        <div class="mb-3">
-                            <label for="saved_address" class="form-label">Select from Address Book</label>
-                            <select class="form-select" id="saved_address" name="saved_address" onchange="populateAddress(this.value)">
-                                <option value="">Choose a saved address or enter new one</option>
-                                @forelse($addresses as $index => $address)
-                                    <option value="{{ $index }}" 
-                                            data-name="{{ $address->name ?? '' }}"
-                                            data-email="{{ $address->email ?? '' }}"
-                                            data-phone="{{ $address->phone ?? '' }}"
-                                            data-address="{{ $address->address ?? '' }}"
-                                            data-country="{{ $address->country_id ?? '' }}"
-                                            data-state="{{ $address->state_id ?? '' }}"
-                                            data-city="{{ $address->city_id ?? '' }}"
-                                            data-zip="{{ $address->zip_code ?? '' }}">
-                                        {{ $address->name ?? 'Address' }} - {{ $address->address ?? 'No address' }}@if(isset($address->city) && $address->city), {{ $address->city->name }}@endif
-                                    </option>
-                                @empty
-                                    <option value="" disabled>No saved addresses found</option>
-                                @endforelse
-                            </select>
-                            
-                            
+                        @if($hasSavedAddresses)
+                        <select class="d-none" id="saved_address" name="saved_address" aria-hidden="true">
+                            @foreach($addresses as $index => $address)
+                                <option value="{{ $index }}"
+                                        {{ (string)$index === (string)$defaultIdx ? 'selected' : '' }}
+                                        data-name="{{ $address->name ?? '' }}"
+                                        data-email="{{ $address->email ?? '' }}"
+                                        data-phone="{{ $address->phone ?? '' }}"
+                                        data-address="{{ $address->address ?? '' }}"
+                                        data-country="{{ $address->country_id ?? $bdCountryId }}"
+                                        data-delivery-area="{{ $address->delivery_area ?? 'inside' }}"
+                                        data-default-billing="{{ $address->default_billing ? '1' : '0' }}"
+                                        data-default-shipping="{{ $address->default_shipping ? '1' : '0' }}">
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <div class="checkout-address-grid" id="checkout-address-grid">
+                            @foreach($addresses as $index => $address)
+                                @php
+                                    $isSelected = (string)$index === (string)$defaultIdx;
+                                    $areaLabel = ($address->delivery_area ?? 'inside') === 'outside' ? 'Outside' : 'Inside';
+                                @endphp
+                                <button type="button"
+                                        class="checkout-address-card {{ $isSelected ? 'is-selected' : '' }}"
+                                        data-address-index="{{ $index }}"
+                                        aria-pressed="{{ $isSelected ? 'true' : 'false' }}">
+                                    <div class="checkout-address-card__top">
+                                        <span class="checkout-address-card__icon">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </span>
+                                        <span class="checkout-address-card__check">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    </div>
+                                    <div class="checkout-address-card__body">
+                                        <div class="checkout-address-card__name">{{ $address->name ?? 'Address' }}</div>
+                                        <div class="checkout-address-card__badges">
+                                            @if($address->default_billing)
+                                                <span class="checkout-chip checkout-chip--primary">Default</span>
+                                            @endif
+                                            <span class="checkout-chip">{{ $areaLabel }}</span>
+                                        </div>
+                                        <p class="checkout-address-card__text">{{ $address->address }}</p>
+                                        <div class="checkout-address-card__meta">
+                                            @if($address->phone)
+                                                <span><i class="fas fa-phone-alt"></i> {{ $address->phone }}</span>
+                                            @endif
+                                            <span><i class="fas fa-flag"></i> Bangladesh</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            @endforeach
+
+                            <button type="button" class="checkout-address-card checkout-address-card--add" id="btn-add-new-address">
+                                <div class="checkout-address-card__add-inner">
+                                    <span class="checkout-address-card__add-icon"><i class="fas fa-plus"></i></span>
+                                    <strong>Add new address</strong>
+                                    <small>Use a different delivery location</small>
+                                </div>
+                            </button>
                         </div>
+                        @endif
                         @endauth
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="first_name" class="form-label">First Name *</label>
-                                <input type="text" class="form-control" id="first_name" name="billing_first_name" required>
+
+                        <div id="billing-form-fields" class="checkout-address-form @if($hasSavedAddresses) d-none @endif">
+                            <div class="checkout-form-title">
+                                <h6 class="mb-1">{{ $hasSavedAddresses ? 'New address details' : 'Enter billing address' }}</h6>
+                                <small class="text-muted">Country is fixed to Bangladesh</small>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="last_name" class="form-label">Last Name *</label>
-                                <input type="text" class="form-control" id="last_name" name="billing_last_name" required>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="first_name" class="form-label">First Name *</label>
+                                    <input type="text" class="form-control" id="first_name" name="billing_first_name" value="{{ old('billing_first_name', $defaultNameParts[0] ?? '') }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="last_name" class="form-label">Last Name *</label>
+                                    <input type="text" class="form-control" id="last_name" name="billing_last_name" value="{{ old('billing_last_name', $defaultNameParts[1] ?? '') }}">
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address *</label>
-                            <input type="email" class="form-control" id="email" name="billing_email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">Phone Number *</label>
-                            <input type="tel" class="form-control" id="phone" name="billing_phone" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="address" class="form-label">Street Address *</label>
-                            <input type="text" class="form-control" id="address" name="billing_address" placeholder="House number and street name" required>
-                        </div>
-                        <div class="mb-3">
-                            <input type="text" class="form-control" id="address2" name="billing_address2" placeholder="Apartment, suite, unit etc. (optional)">
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="country" class="form-label">Country *</label>
-                                <select class="form-select" id="country" name="billing_country" required>
-                                    <option value="">Select Country</option>
-                                    @foreach($countries as $country)
-                                        <option value="{{ $country->id }}">{{ $country->name }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="billing_email" value="{{ old('billing_email', $defaultAddress->email ?? (auth()->user()->email ?? '')) }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">Phone Number *</label>
+                                    <input type="tel" class="form-control" id="phone" name="billing_phone" value="{{ old('billing_phone', $defaultAddress->phone ?? '') }}" required>
+                                </div>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="state" class="form-label">State *</label>
-                                <select class="form-select" id="state" name="billing_state" required>
-                                    <option value="">Select State</option>
-                                </select>
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Full Address *</label>
+                                <textarea class="form-control" id="address" name="billing_address" rows="3" placeholder="House, road, area, landmark" required>{{ old('billing_address', $defaultAddress->address ?? '') }}</textarea>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="city" class="form-label">City *</label>
-                                <select class="form-select" id="city" name="billing_city" required>
-                                    <option value="">Select City</option>
-                                </select>
+                            <div class="row align-items-end">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Country</label>
+                                    <div class="checkout-readonly-field">
+                                        <i class="fas fa-globe-asia me-2"></i> Bangladesh
+                                    </div>
+                                    <input type="hidden" id="country" name="billing_country" value="{{ $bdCountryId }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label d-block">Delivery Area *</label>
+                                    @php $billingArea = old('billing_delivery_area', $defaultAddress->delivery_area ?? 'inside'); @endphp
+                                    <div class="checkout-area-toggle">
+                                        <input type="radio" class="btn-check" name="billing_delivery_area" id="billing_area_inside" value="inside" {{ $billingArea === 'inside' ? 'checked' : '' }}>
+                                        <label class="checkout-area-btn" for="billing_area_inside">Inside</label>
+                                        <input type="radio" class="btn-check" name="billing_delivery_area" id="billing_area_outside" value="outside" {{ $billingArea === 'outside' ? 'checked' : '' }}>
+                                        <label class="checkout-area-btn" for="billing_area_outside">Outside</label>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="zip" class="form-label">ZIP Code *</label>
-                            <input type="text" class="form-control" id="zip" name="billing_zip" required>
+                            @if($hasSavedAddresses)
+                            <div class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-cancel-new-address">Cancel</button>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
 
                 <!-- Shipping Information -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Shipping Information</h5>
-                            <div class="form-check">
+                <div class="card checkout-section-card mb-4">
+                    <div class="card-header checkout-section-header">
+                        <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+                            <div>
+                                <h5 class="mb-0">Shipping Information</h5>
+                                <small class="text-muted">Deliver to a different address if needed</small>
+                            </div>
+                            <div class="form-check form-switch m-0">
                                 <input class="form-check-input" type="checkbox" id="same-as-billing" checked>
                                 <label class="form-check-label" for="same-as-billing">
-                                    Same as billing address
+                                    Same as billing
                                 </label>
                             </div>
                         </div>
@@ -129,47 +188,37 @@
                                 <input type="text" class="form-control" id="ship_last_name" name="shipping_last_name">
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="ship_email" class="form-label">Email Address *</label>
-                            <input type="email" class="form-control" id="ship_email" name="shipping_email">
-                        </div>
-                        <div class="mb-3">
-                            <label for="ship_phone" class="form-label">Phone Number *</label>
-                            <input type="tel" class="form-control" id="ship_phone" name="shipping_phone">
-                        </div>
-                        <div class="mb-3">
-                            <label for="ship_address" class="form-label">Street Address *</label>
-                            <input type="text" class="form-control" id="ship_address" name="shipping_address" placeholder="House number and street name">
-                        </div>
-                        <div class="mb-3">
-                            <input type="text" class="form-control" id="ship_address2" name="shipping_address2" placeholder="Apartment, suite, unit etc. (optional)">
-                        </div>
                         <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="ship_country" class="form-label">Country *</label>
-                                <select class="form-select" id="ship_country" name="shipping_country">
-                                    <option value="">Select Country</option>
-                                    @foreach($countries as $country)
-                                        <option value="{{ $country->id }}">{{ $country->name }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="col-md-6 mb-3">
+                                <label for="ship_email" class="form-label">Email Address *</label>
+                                <input type="email" class="form-control" id="ship_email" name="shipping_email">
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="ship_state" class="form-label">State *</label>
-                                <select class="form-select" id="ship_state" name="shipping_state">
-                                    <option value="">Select State</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label for="ship_city" class="form-label">City *</label>
-                                <select class="form-select" id="ship_city" name="shipping_city">
-                                    <option value="">Select City</option>
-                                </select>
+                            <div class="col-md-6 mb-3">
+                                <label for="ship_phone" class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="ship_phone" name="shipping_phone">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="ship_zip" class="form-label">ZIP Code *</label>
-                            <input type="text" class="form-control" id="ship_zip" name="shipping_zip">
+                            <label for="ship_address" class="form-label">Full Address *</label>
+                            <textarea class="form-control" id="ship_address" name="shipping_address" rows="3" placeholder="House, road, area, landmark"></textarea>
+                        </div>
+                        <div class="row align-items-end">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Country</label>
+                                <div class="checkout-readonly-field">
+                                    <i class="fas fa-globe-asia me-2"></i> Bangladesh
+                                </div>
+                                <input type="hidden" id="ship_country" name="shipping_country" value="{{ $bdCountryId }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label d-block">Delivery Area *</label>
+                                <div class="checkout-area-toggle">
+                                    <input type="radio" class="btn-check" name="shipping_delivery_area" id="ship_area_inside" value="inside" checked>
+                                    <label class="checkout-area-btn" for="ship_area_inside">Inside</label>
+                                    <input type="radio" class="btn-check" name="shipping_delivery_area" id="ship_area_outside" value="outside">
+                                    <label class="checkout-area-btn" for="ship_area_outside">Outside</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -415,6 +464,240 @@
 </div>
 
 <style>
+.checkout-section-card {
+    border: 1px solid #ebe7f2;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(74, 74, 92, 0.06);
+}
+
+.checkout-section-header {
+    background: linear-gradient(180deg, #fbfafc 0%, #f5f3f8 100%);
+    border-bottom: 1px solid #ebe7f2;
+    padding: 1rem 1.25rem;
+}
+
+.checkout-section-header h5 {
+    color: var(--text-dark, #4A4A5C);
+    font-weight: 650;
+}
+
+.checkout-address-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 0.5rem;
+}
+
+.checkout-address-card {
+    position: relative;
+    text-align: left;
+    background: #fff;
+    border: 1.5px solid #e8e4ef;
+    border-radius: 12px;
+    padding: 16px;
+    transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+    cursor: pointer;
+    min-height: 180px;
+    color: inherit;
+}
+
+.checkout-address-card:hover {
+    border-color: var(--accent-color, #A594C4);
+    box-shadow: 0 10px 22px rgba(107, 78, 157, 0.08);
+    transform: translateY(-1px);
+}
+
+.checkout-address-card.is-selected {
+    border-color: var(--primary-color, #8B7BA8);
+    box-shadow: 0 0 0 3px rgba(139, 123, 168, 0.15);
+    background: linear-gradient(180deg, #ffffff 0%, #f8f6fb 100%);
+}
+
+.checkout-address-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.checkout-address-card__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(139, 123, 168, 0.12);
+    color: var(--primary-color, #8B7BA8);
+}
+
+.checkout-address-card__check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid #d9d4e3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    font-size: 11px;
+    transition: all .2s ease;
+}
+
+.checkout-address-card.is-selected .checkout-address-card__check {
+    background: var(--primary-color, #8B7BA8);
+    border-color: var(--primary-color, #8B7BA8);
+    color: #fff;
+}
+
+.checkout-address-card__name {
+    font-weight: 650;
+    font-size: 1rem;
+    color: var(--text-dark, #4A4A5C);
+    margin-bottom: 8px;
+}
+
+.checkout-address-card__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.checkout-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #f1eef6;
+    color: #6b6580;
+}
+
+.checkout-chip--primary {
+    background: rgba(139, 123, 168, 0.16);
+    color: var(--primary-color, #8B7BA8);
+}
+
+.checkout-address-card__text {
+    font-size: 0.9rem;
+    color: #5f5a70;
+    margin: 0 0 12px;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 3.9em;
+}
+
+.checkout-address-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #7a748c;
+}
+
+.checkout-address-card__meta i {
+    width: 14px;
+    color: var(--primary-color, #8B7BA8);
+}
+
+.checkout-address-card--add {
+    border-style: dashed;
+    background: #fcfbfd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkout-address-card--add.is-selected,
+.checkout-address-card--add.is-active {
+    border-style: solid;
+    border-color: var(--primary-color, #8B7BA8);
+    background: #f8f6fb;
+}
+
+.checkout-address-card__add-inner {
+    text-align: center;
+}
+
+.checkout-address-card__add-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    background: rgba(139, 123, 168, 0.12);
+    color: var(--primary-color, #8B7BA8);
+    font-size: 1rem;
+}
+
+.checkout-address-card__add-inner strong {
+    display: block;
+    color: var(--text-dark, #4A4A5C);
+    margin-bottom: 4px;
+}
+
+.checkout-address-card__add-inner small {
+    color: #8a8499;
+}
+
+.checkout-address-form {
+    margin-top: 1.25rem;
+    padding: 1.1rem 1.15rem;
+    border: 1px solid #ebe7f2;
+    border-radius: 12px;
+    background: #faf9fc;
+}
+
+.checkout-form-title {
+    margin-bottom: 1rem;
+}
+
+.checkout-readonly-field {
+    display: flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid #e4e0ea;
+    border-radius: 0.375rem;
+    background: #fff;
+    color: #5f5a70;
+}
+
+.checkout-area-toggle {
+    display: inline-flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.checkout-area-btn {
+    flex: 1;
+    text-align: center;
+    border: 1.5px solid #e4e0ea;
+    border-radius: 8px;
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+    background: #fff;
+    color: #5f5a70;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 0;
+    transition: all .15s ease;
+}
+
+.btn-check:checked + .checkout-area-btn {
+    border-color: var(--primary-color, #8B7BA8);
+    background: rgba(139, 123, 168, 0.12);
+    color: var(--primary-color, #8B7BA8);
+}
+
 .order-item {
     display: flex;
     align-items: center;
@@ -451,11 +734,11 @@
 
 .order-item-price {
     font-weight: 600;
-    color: #d4af37;
+    color: var(--primary-color, #8B7BA8);
 }
 
 .form-check-label {
-    width: 100%;
+    width: auto;
 }
 
 .payment-icons {
@@ -468,254 +751,162 @@
     font-size: 24px;
     color: #666;
 }
+
+@media (max-width: 575.98px) {
+    .checkout-address-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 
 <script>
-// Address population function - defined first to ensure it's available
-// Fast loaders without arbitrary delays
-function loadStatesForCountry(countryId) {
-    return new Promise(function(resolve, reject) {
-        var stateSelect = $('#state');
-        var citySelect = $('#city');
-        stateSelect.html('<option value="">Select State</option>').prop('disabled', true);
-        citySelect.html('<option value="">Select City</option>').prop('disabled', true);
-        if (!countryId) { resolve(); return; }
-        $.ajax({
-            url: '{{ url("public/states") }}/' + countryId,
-            type: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                if (Array.isArray(data) && data.length > 0) {
-                    $.each(data, function(_, value) {
-                        stateSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                    });
-                    stateSelect.prop('disabled', false);
-                }
-                resolve();
-            },
-            error: function(err) { resolve(); }
-        });
+const BD_COUNTRY_ID = @json($bangladeshCountryId ?? null);
+
+function setDeliveryArea(name, value) {
+    const target = value === 'outside' ? 'outside' : 'inside';
+    document.querySelectorAll('input[name="' + name + '"]').forEach(function (radio) {
+        radio.checked = radio.value === target;
     });
 }
 
-function loadCitiesForState(stateId) {
-    return new Promise(function(resolve, reject) {
-        var citySelect = $('#city');
-        citySelect.html('<option value="">Select City</option>').prop('disabled', true);
-        if (!stateId) { resolve(); return; }
-        $.ajax({
-            url: '{{ url("public/cities") }}/' + stateId,
-            type: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                if (Array.isArray(data) && data.length > 0) {
-                    $.each(data, function(_, value) {
-                        citySelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                    });
-                    citySelect.prop('disabled', false);
-                }
-                resolve();
-            },
-            error: function(err) { resolve(); }
-        });
+function setSelectedAddressCard(index) {
+    document.querySelectorAll('.checkout-address-card[data-address-index]').forEach(function (card) {
+        const selected = String(card.dataset.addressIndex) === String(index);
+        card.classList.toggle('is-selected', selected);
+        card.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
+    const addCard = document.getElementById('btn-add-new-address');
+    if (addCard) {
+        addCard.classList.toggle('is-active', index === 'new');
+    }
+}
+
+function showBillingFormFields(show) {
+    const wrap = document.getElementById('billing-form-fields');
+    if (!wrap) return;
+    wrap.classList.toggle('d-none', !show);
+
+    // Hidden required fields block native submit ("not focusable")
+    wrap.querySelectorAll('input, textarea, select').forEach(function (field) {
+        if (!field.hasAttribute('name')) return;
+        if (field.type === 'hidden' || field.type === 'radio' || field.type === 'checkbox') return;
+        if (show) {
+            if (field.dataset.wasRequired === '1') {
+                field.setAttribute('required', 'required');
+            }
+        } else {
+            if (field.hasAttribute('required')) {
+                field.dataset.wasRequired = '1';
+                field.removeAttribute('required');
+            }
+        }
+    });
+}
+
+function ensureBillingFieldsFromSelection() {
+    const savedAddressSelect = document.getElementById('saved_address');
+    const formWrap = document.getElementById('billing-form-fields');
+    const usingSaved = savedAddressSelect
+        && savedAddressSelect.value !== ''
+        && formWrap
+        && formWrap.classList.contains('d-none');
+
+    if (usingSaved) {
+        populateAddress(savedAddressSelect.value);
+        showBillingFormFields(false);
+    }
+
+    const lastName = document.getElementById('last_name');
+    if (lastName && !String(lastName.value || '').trim()) {
+        lastName.value = '-';
+    }
 }
 
 function populateAddress(index) {
-    console.log('populateAddress called with index:', index);
-    
-    // Check if the saved_address element exists (only for authenticated users)
     const savedAddressSelect = document.getElementById('saved_address');
-    if (!savedAddressSelect) {
-        console.log('saved_address element not found - user may not be authenticated');
-        return;
-    }
-    
-    if (index === '' || index === null || index === undefined) {
-        console.log('Empty index, clearing form');
+    if (!savedAddressSelect) return;
+
+    if (index === '' || index === null || index === undefined || index === 'new') {
+        setSelectedAddressCard('new');
         clearAddressForm();
+        showBillingFormFields(true);
         return;
     }
-    
+
     const option = document.querySelector('#saved_address option[value="' + index + '"]');
-    if (!option) {
-        console.log('Option not found for index:', index);
-        console.log('Available options:', document.querySelectorAll('#saved_address option'));
-        return;
-    }
-    
-    console.log('Found option:', option);
-    console.log('Option data:', {
-        name: option.dataset.name,
-        email: option.dataset.email,
-        phone: option.dataset.phone,
-        address: option.dataset.address,
-        country: option.dataset.country,
-        state: option.dataset.state,
-        city: option.dataset.city,
-        zip: option.dataset.zip
-    });
-    
-    // Populate basic fields
+    if (!option) return;
+
+    savedAddressSelect.value = String(index);
+    setSelectedAddressCard(index);
+
     const name = option.dataset.name || '';
-    const nameParts = name.split(' ');
-    
+    const nameParts = name.trim().split(/\s+/);
     const firstNameField = document.getElementById('first_name');
     const lastNameField = document.getElementById('last_name');
     const emailField = document.getElementById('email');
     const phoneField = document.getElementById('phone');
     const addressField = document.getElementById('address');
-    const zipField = document.getElementById('zip');
-    
-    console.log('Form fields found:', {
-        firstName: !!firstNameField,
-        lastName: !!lastNameField,
-        email: !!emailField,
-        phone: !!phoneField,
-        address: !!addressField,
-        zip: !!zipField
-    });
-    
-    if (firstNameField) {
-        firstNameField.value = nameParts[0] || '';
-        console.log('Set first name:', nameParts[0] || '');
-    }
-    if (lastNameField) {
-        lastNameField.value = nameParts.slice(1).join(' ') || '';
-        console.log('Set last name:', nameParts.slice(1).join(' ') || '');
-    }
-    if (emailField) {
-        emailField.value = option.dataset.email || '';
-        console.log('Set email:', option.dataset.email || '');
-    }
-    if (phoneField) {
-        phoneField.value = option.dataset.phone || '';
-        console.log('Set phone:', option.dataset.phone || '');
-    }
-    if (addressField) {
-        addressField.value = option.dataset.address || '';
-        console.log('Set address:', option.dataset.address || '');
-    }
-    if (zipField) {
-        zipField.value = option.dataset.zip || '';
-        console.log('Set zip:', option.dataset.zip || '');
-    }
-    
-    // Set country, state, city by awaiting AJAX completion (no timeouts)
     const countryField = document.getElementById('country');
-    const stateField = document.getElementById('state');
-    const cityField = document.getElementById('city');
-    
-    console.log('Location fields found:', {
-        country: !!countryField,
-        state: !!stateField,
-        city: !!cityField
-    });
-    
-    if (countryField && option.dataset.country) {
-        console.log('Setting country:', option.dataset.country);
-        countryField.value = option.dataset.country;
-        // Load states, then set state and load cities, then set city
-        loadStatesForCountry(option.dataset.country).then(function() {
-            if (stateField && option.dataset.state) {
-                console.log('Setting state:', option.dataset.state);
-                stateField.value = option.dataset.state;
-                return loadCitiesForState(option.dataset.state).then(function() {
-                    if (cityField && option.dataset.city) {
-                        console.log('Setting city:', option.dataset.city);
-                        cityField.value = option.dataset.city;
-                    }
-                });
-            }
-        });
-    }
-    
-    // Also populate shipping address if "Same as billing" is unchecked
+
+    if (firstNameField) firstNameField.value = nameParts[0] || '';
+    if (lastNameField) lastNameField.value = nameParts.slice(1).join(' ') || '';
+    if (emailField) emailField.value = option.dataset.email || '';
+    if (phoneField) phoneField.value = option.dataset.phone || '';
+    if (addressField) addressField.value = option.dataset.address || '';
+    if (countryField) countryField.value = option.dataset.country || BD_COUNTRY_ID || '';
+    setDeliveryArea('billing_delivery_area', option.dataset.deliveryArea || 'inside');
+
+    showBillingFormFields(false);
+
     const sameAsBillingCheckbox = document.getElementById('same-as-billing');
     if (sameAsBillingCheckbox && !sameAsBillingCheckbox.checked) {
         populateShippingAddress(option);
     }
-    
-    console.log('Address populated successfully');
 }
 
-// Function to populate shipping address with selected address data
 function populateShippingAddress(option) {
     const name = option.dataset.name || '';
-    const nameParts = name.split(' ');
-    
+    const nameParts = name.trim().split(/\s+/);
+
     const shipFirstNameField = document.getElementById('ship_first_name');
     const shipLastNameField = document.getElementById('ship_last_name');
     const shipEmailField = document.getElementById('ship_email');
     const shipPhoneField = document.getElementById('ship_phone');
     const shipAddressField = document.getElementById('ship_address');
-    const shipZipField = document.getElementById('ship_zip');
-    
+    const shipCountryField = document.getElementById('ship_country');
+
     if (shipFirstNameField) shipFirstNameField.value = nameParts[0] || '';
     if (shipLastNameField) shipLastNameField.value = nameParts.slice(1).join(' ') || '';
     if (shipEmailField) shipEmailField.value = option.dataset.email || '';
     if (shipPhoneField) shipPhoneField.value = option.dataset.phone || '';
     if (shipAddressField) shipAddressField.value = option.dataset.address || '';
-    if (shipZipField) shipZipField.value = option.dataset.zip || '';
-    
-    // Set shipping country, state, city with proper delays
-    const shipCountryField = document.getElementById('ship_country');
-    const shipStateField = document.getElementById('ship_state');
-    const shipCityField = document.getElementById('ship_city');
-    
-    if (shipCountryField && option.dataset.country) {
-        shipCountryField.value = option.dataset.country;
-        shipCountryField.dispatchEvent(new Event('change'));
-        
-        setTimeout(() => {
-            if (shipStateField && option.dataset.state) {
-                shipStateField.value = option.dataset.state;
-                shipStateField.dispatchEvent(new Event('change'));
-                
-                setTimeout(() => {
-                    if (shipCityField && option.dataset.city) {
-                        shipCityField.value = option.dataset.city;
-                    }
-                }, 1500);
-            }
-        }, 1500);
-    }
+    if (shipCountryField) shipCountryField.value = option.dataset.country || BD_COUNTRY_ID || '';
+    setDeliveryArea('shipping_delivery_area', option.dataset.deliveryArea || 'inside');
 }
 
-// Function to clear address form
 function clearAddressForm() {
-    const fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'zip'];
-    fields.forEach(fieldId => {
+    ['first_name', 'last_name', 'email', 'phone', 'address'].forEach(function (fieldId) {
         const field = document.getElementById(fieldId);
         if (field) field.value = '';
     });
-    
-    const selectFields = ['country', 'state', 'city'];
-    selectFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) field.value = '';
-    });
-    
-    // Also clear shipping form if it's visible
+    const countryField = document.getElementById('country');
+    if (countryField) countryField.value = BD_COUNTRY_ID || '';
+    setDeliveryArea('billing_delivery_area', 'inside');
+
     const sameAsBillingCheckbox = document.getElementById('same-as-billing');
     if (sameAsBillingCheckbox && !sameAsBillingCheckbox.checked) {
         clearShippingForm();
     }
 }
 
-// Function to clear shipping address form
 function clearShippingForm() {
-    const shipFields = ['ship_first_name', 'ship_last_name', 'ship_email', 'ship_phone', 'ship_address', 'ship_zip'];
-    shipFields.forEach(fieldId => {
+    ['ship_first_name', 'ship_last_name', 'ship_email', 'ship_phone', 'ship_address'].forEach(function (fieldId) {
         const field = document.getElementById(fieldId);
         if (field) field.value = '';
     });
-    
-    const shipSelectFields = ['ship_country', 'ship_state', 'ship_city'];
-    shipSelectFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) field.value = '';
-    });
+    const shipCountryField = document.getElementById('ship_country');
+    if (shipCountryField) shipCountryField.value = BD_COUNTRY_ID || '';
+    setDeliveryArea('shipping_delivery_area', 'inside');
 }
 
 class Checkout {
@@ -734,11 +925,33 @@ class Checkout {
     }
 
     bindEvents() {
-        // Address dropdown change
+        // Address card selection
         const savedAddressSelect = document.getElementById('saved_address');
-        if (savedAddressSelect) {
-            savedAddressSelect.addEventListener('change', (e) => {
-                populateAddress(e.target.value);
+        document.querySelectorAll('.checkout-address-card[data-address-index]').forEach(function (card) {
+            card.addEventListener('click', function () {
+                populateAddress(card.dataset.addressIndex);
+            });
+        });
+
+        if (savedAddressSelect && savedAddressSelect.value !== '') {
+            populateAddress(savedAddressSelect.value);
+        }
+
+        const addNewBtn = document.getElementById('btn-add-new-address');
+        if (addNewBtn) {
+            addNewBtn.addEventListener('click', () => {
+                if (savedAddressSelect) {
+                    savedAddressSelect.selectedIndex = -1;
+                }
+                populateAddress('new');
+            });
+        }
+
+        const cancelNewBtn = document.getElementById('btn-cancel-new-address');
+        if (cancelNewBtn) {
+            cancelNewBtn.addEventListener('click', () => {
+                const fallback = @json((string)($defaultIdx ?? 0));
+                populateAddress(fallback);
             });
         }
 
@@ -752,15 +965,70 @@ class Checkout {
             
             // If unchecking "same as billing" and there's a selected address, auto-fill shipping
             if (!e.target.checked) {
-                const savedAddressSelect = document.getElementById('saved_address');
-                if (savedAddressSelect && savedAddressSelect.value !== '') {
-                    const selectedOption = savedAddressSelect.options[savedAddressSelect.selectedIndex];
+                const select = document.getElementById('saved_address');
+                if (select && select.value !== '' && select.selectedIndex >= 0) {
+                    const selectedOption = select.options[select.selectedIndex];
                     if (selectedOption) {
                         populateShippingAddress(selectedOption);
                     }
                 }
             }
         });
+
+        const checkoutForm = document.getElementById('checkout-form');
+        if (checkoutForm) {
+            checkoutForm.addEventListener('submit', (e) => {
+                ensureBillingFieldsFromSelection();
+
+                const payment = document.querySelector('input[name="payment_method"]:checked');
+                const shipping = document.querySelector('input[name="shipping_method"]:checked');
+                const firstName = document.getElementById('first_name');
+                const email = document.getElementById('email');
+                const phone = document.getElementById('phone');
+                const address = document.getElementById('address');
+
+                const missing = [];
+                if (!firstName || !String(firstName.value || '').trim()) missing.push('name');
+                if (!email || !String(email.value || '').trim()) missing.push('email');
+                if (!phone || !String(phone.value || '').trim()) missing.push('phone');
+                if (!address || !String(address.value || '').trim()) missing.push('address');
+                if (!shipping) missing.push('shipping method');
+                if (!payment) missing.push('payment method');
+
+                if (missing.length) {
+                    e.preventDefault();
+                    const formWrap = document.getElementById('billing-form-fields');
+                    if (formWrap && formWrap.classList.contains('d-none') && (missing.includes('name') || missing.includes('email') || missing.includes('phone') || missing.includes('address'))) {
+                        showBillingFormFields(true);
+                    }
+                    this.showNotification('Please fill: ' + missing.join(', '), 'error');
+                    return false;
+                }
+
+                const btn = document.getElementById('place-order-btn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Placing Order...';
+                }
+            });
+        }
+
+        const placeOrderBtn = document.getElementById('place-order-btn');
+        if (placeOrderBtn && checkoutForm) {
+            placeOrderBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                ensureBillingFieldsFromSelection();
+                if (typeof checkoutForm.requestSubmit === 'function') {
+                    checkoutForm.requestSubmit();
+                    return;
+                }
+                // Legacy fallback
+                const submitEvent = new Event('submit', { cancelable: true, bubbles: true });
+                if (checkoutForm.dispatchEvent(submitEvent)) {
+                    checkoutForm.submit();
+                }
+            });
+        }
 
         // Shipping method change events are now bound in loadShippingMethods()
 
@@ -771,8 +1039,6 @@ class Checkout {
             });
         });
 
-        // Place order button - now uses form submission instead of JavaScript
-        
         // Coupon application (if coupon form exists)
         const applyCouponBtn = document.getElementById('apply-coupon-btn');
         if (applyCouponBtn) {
@@ -828,11 +1094,14 @@ class Checkout {
                     this.userData = data.user;
                 }
                 
-                // Populate address dropdown and pre-fill if available
+                // Keep blade-rendered address list; only refresh from API if select is empty
+                const savedAddressSelect = document.getElementById('saved_address');
                 if (data.addresses && data.addresses.length > 0) {
-                    this.populateAddressDropdown(data.addresses);
-                    // Optionally pre-populate with first address
-                    // this.populateAddressData(data.addresses[0]);
+                    if (savedAddressSelect && savedAddressSelect.options.length === 0) {
+                        this.populateAddressDropdown(data.addresses);
+                    } else if (savedAddressSelect && savedAddressSelect.value !== '') {
+                        populateAddress(savedAddressSelect.value);
+                    }
                 }
             } else {
                 this.showNotification('Failed to load checkout data', 'error');
@@ -861,71 +1130,49 @@ class Checkout {
     populateAddressDropdown(addresses) {
         const savedAddressSelect = document.getElementById('saved_address');
         if (!savedAddressSelect) return;
-        
-        // Clear existing options except the first one
-        savedAddressSelect.innerHTML = '<option value="">Choose a saved address or enter new one</option>';
-        
-        // Add addresses to dropdown
+
+        savedAddressSelect.innerHTML = '';
+
+        let defaultIndex = 0;
+        const billingDefault = addresses.findIndex(a => Number(a.default_billing) === 1);
+        const shippingDefault = addresses.findIndex(a => Number(a.default_shipping) === 1);
+        if (billingDefault >= 0) defaultIndex = billingDefault;
+        else if (shippingDefault >= 0) defaultIndex = shippingDefault;
+
         addresses.forEach((address, index) => {
             const option = document.createElement('option');
             option.value = index;
-            const cityName = address.city && address.city.name ? address.city.name : (address.city || '');
-            const zipCode = address.zip_code ? ' ' + address.zip_code : '';
-            option.textContent = (address.name || 'Address') + ' - ' + address.address + ', ' + cityName + zipCode;
-            // Attach data attributes so populateAddress() can use them uniformly
+            const labelBits = [address.name || 'Address'];
+            if (Number(address.default_billing) === 1) labelBits.push('(Default)');
+            option.textContent = labelBits.join(' ') + ' — ' + (address.address || '');
             option.dataset.name = address.name || '';
             option.dataset.email = address.email || '';
             option.dataset.phone = address.phone || '';
             option.dataset.address = address.address || '';
-            option.dataset.country = address.country_id || '';
-            option.dataset.state = address.state_id || '';
-            option.dataset.city = address.city_id || '';
-            option.dataset.zip = address.zip_code || '';
+            option.dataset.country = address.country_id || BD_COUNTRY_ID || '';
+            option.dataset.deliveryArea = address.delivery_area || 'inside';
+            option.dataset.defaultBilling = Number(address.default_billing) === 1 ? '1' : '0';
+            option.dataset.defaultShipping = Number(address.default_shipping) === 1 ? '1' : '0';
+            if (index === defaultIndex) option.selected = true;
             savedAddressSelect.appendChild(option);
         });
-        
-        // Store addresses for later use
+
         this.userAddresses = addresses;
-        
-        // Add event listener for address selection
-        savedAddressSelect.addEventListener('change', (e) => {
-            if (e.target.value !== '') {
-                const selectedAddress = this.userAddresses[e.target.value];
-                this.populateAddressData(selectedAddress);
-            }
-        });
+        populateAddress(String(defaultIndex));
     }
     
     populateAddressData(address) {
-        // Populate billing address
         if (address.name) {
-            const nameParts = address.name.split(' ');
+            const nameParts = address.name.trim().split(/\s+/);
             document.getElementById('first_name').value = nameParts[0] || '';
             document.getElementById('last_name').value = nameParts.slice(1).join(' ') || '';
         }
         if (address.email) document.getElementById('email').value = address.email;
         if (address.phone) document.getElementById('phone').value = address.phone;
         if (address.address) document.getElementById('address').value = address.address;
-        if (address.country_id) document.getElementById('country').value = address.country_id;
-        if (address.state_id) document.getElementById('state').value = address.state_id;
-        if (address.city_id) document.getElementById('city').value = address.city_id;
-        if (address.zip_code) document.getElementById('zip').value = address.zip_code;
-        
-        // Trigger change events to populate dependent dropdowns
-        if (address.country_id) {
-            document.getElementById('country').dispatchEvent(new Event('change'));
-            setTimeout(() => {
-                if (address.state_id) {
-                    document.getElementById('state').value = address.state_id;
-                    document.getElementById('state').dispatchEvent(new Event('change'));
-                    setTimeout(() => {
-                        if (address.city_id) {
-                            document.getElementById('city').value = address.city_id;
-                        }
-                    }, 500);
-                }
-            }, 500);
-        }
+        const countryField = document.getElementById('country');
+        if (countryField) countryField.value = address.country_id || BD_COUNTRY_ID || '';
+        setDeliveryArea('billing_delivery_area', address.delivery_area || 'inside');
     }
     
     loadOrderSummary() {
@@ -1351,7 +1598,9 @@ class Checkout {
      }
 
     togglePaymentForms() {
-        const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        const selected = document.querySelector('input[name="payment_method"]:checked');
+        if (!selected) return;
+        const selectedMethod = selected.value;
         const bankPaymentInfo = document.getElementById('bank-payment-info');
         
         // Hide all forms first
@@ -1418,125 +1667,6 @@ const checkout = new Checkout();
 </script>
 
 @push('scripts')
-<script>
-$(document).ready(function() {
-    // Handle billing country change
-    $('#country').change(function() {
-        var countryId = $(this).val();
-        var stateSelect = $('#state');
-        var citySelect = $('#city');
-        
-        // Reset state and city
-        stateSelect.html('<option value="">Select State</option>').prop('disabled', true);
-        citySelect.html('<option value="">Select City</option>').prop('disabled', true);
-        
-        if (countryId) {
-            $.ajax({
-                url: '{{ url("public/states") }}/' + countryId,
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data.length > 0) {
-                        $.each(data, function(key, value) {
-                            stateSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                        });
-                        stateSelect.prop('disabled', false);
-                    }
-                },
-                error: function() {
-                    alert('Error loading states. Please try again.');
-                }
-            });
-        }
-    });
-    
-    // Handle billing state change
-    $('#state').change(function() {
-        var stateId = $(this).val();
-        var citySelect = $('#city');
-        
-        // Reset city
-        citySelect.html('<option value="">Select City</option>').prop('disabled', true);
-        
-        if (stateId) {
-            $.ajax({
-                url: '{{ url("public/cities") }}/' + stateId,
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data.length > 0) {
-                        $.each(data, function(key, value) {
-                            citySelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                        });
-                        citySelect.prop('disabled', false);
-                    }
-                },
-                error: function() {
-                    alert('Error loading cities. Please try again.');
-                }
-            });
-        }
-    });
-
-    // Handle shipping country change
-    $('#ship_country').change(function() {
-        var countryId = $(this).val();
-        var stateSelect = $('#ship_state');
-        var citySelect = $('#ship_city');
-        
-        // Reset state and city
-        stateSelect.html('<option value="">Select State</option>').prop('disabled', true);
-        citySelect.html('<option value="">Select City</option>').prop('disabled', true);
-        
-        if (countryId) {
-            $.ajax({
-                url: '{{ url("public/states") }}/' + countryId,
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data.length > 0) {
-                        $.each(data, function(key, value) {
-                            stateSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                        });
-                        stateSelect.prop('disabled', false);
-                    }
-                },
-                error: function() {
-                    alert('Error loading states. Please try again.');
-                }
-            });
-        }
-    });
-    
-    // Handle shipping state change
-    $('#ship_state').change(function() {
-        var stateId = $(this).val();
-        var citySelect = $('#ship_city');
-        
-        // Reset city
-        citySelect.html('<option value="">Select City</option>').prop('disabled', true);
-        
-        if (stateId) {
-            $.ajax({
-                url: '{{ url("public/cities") }}/' + stateId,
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data.length > 0) {
-                        $.each(data, function(key, value) {
-                            citySelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                        });
-                        citySelect.prop('disabled', false);
-                    }
-                },
-                error: function() {
-                    alert('Error loading cities. Please try again.');
-                }
-            });
-        }
-    });
-});
-</script>
 @endpush
 
 @endsection

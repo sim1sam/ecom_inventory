@@ -139,7 +139,7 @@
 
                                 <div class="form-group col-12">
                                     <label>{{ __('admin.Purchase Price (Per Pc)') }}</label>
-                                   <input type="number" step="0.01" class="form-control" name="cost_price" value="{{ old('cost_price', $product->cost_price > 0 ? $product->cost_price : '') }}" min="0">
+                                   <input type="number" step="0.0001" class="form-control" name="cost_price" value="{{ old('cost_price', $product->cost_price > 0 ? $product->cost_price : '') }}" min="0">
                                     <small class="text-muted">{{ __('admin.Purchase price is set on PO and saved to product when stock is received') }}</small>
                                 </div>
 

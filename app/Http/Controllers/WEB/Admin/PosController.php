@@ -54,15 +54,20 @@ class PosController extends Controller
         $data['products'] = Product::with('activeVariants')->where(['vendor_id' => 0])->where(['status' => 1])->orderBy('id','desc')->paginate(18);
         $data['setting'] = Setting::first();
         $data['categories'] = Category::with('subCategories','products')->get();
-        $data['cart_products'] = ShoppingCart::where('user_id',Auth::guard('admin')->user()->id)->orderBy('id','desc')->get();
-        $data['customers'] = User::where('status',1)->select('id','name')->orderBy('id','asc')->get();
-        $data['coupon'] = Coupon::where(['code' => 'fdfgdfg', 'status' => 1])->first();
+        $cartData = $this->posCartViewData();
+        $totals = $this->calculatePosTotals($cartData);
+        $data['cart_products'] = $cartData['cart_products'];
+        $data['coupon'] = $cartData['coupon'];
+        $data['couponValue'] = $cartData['couponValue'];
+        $data['grandTotal'] = $totals['grandTotal'];
+        $data['tax'] = $totals['tax'];
+        $data['discount'] = $totals['discount'];
+        $data['subTotal'] = $totals['subTotal'];
         $data['shippings'] = Shipping::all();
         $data['countries'] = Country::all();
         $data['city'] = City::all();
         $data['state'] = CountryState::all();
-        $data['couponValue'] = 'dfgdfg';
-        return view('admin.pos.index',$data);
+        return view('admin.pos.index', $this->withPosSharedData($data));
     }
 
     public function categoryIndex($id)
@@ -73,14 +78,13 @@ class PosController extends Controller
         $data['setting'] = Setting::first();
         $data['categories'] = Category::with('subCategories','products')->get();
         $data['cart_products'] = ShoppingCart::where('user_id',Auth::guard('admin')->user()->id)->orderBy('id','desc')->get();
-        $data['customers'] = User::where('status',1)->select('id','name')->orderBy('id','asc')->get();
         $data['coupon'] = Coupon::where(['code' => 'fdfgdfg', 'status' => 1])->first();
         $data['shippings'] = Shipping::all();
         $data['countries'] = Country::all();
         $data['city'] = City::all();
         $data['state'] = CountryState::all();
         $data['couponValue'] = 'dfgdfg';
-        return view('admin.pos.index',$data);
+        return view('admin.pos.index', $this->withPosSharedData($data));
     }
 
     public function search(Request $request)
@@ -100,14 +104,161 @@ class PosController extends Controller
         $data['setting'] = Setting::first();
         $data['categories'] = Category::with('subCategories','products')->get();
         $data['cart_products'] = ShoppingCart::where('user_id',Auth::guard('admin')->user()->id)->orderBy('id','desc')->get();
-        $data['customers'] = User::where('status',1)->select('id','name')->orderBy('id','asc')->get();
         $data['coupon'] = Coupon::where(['code' => 'fdfgdfg', 'status' => 1])->first();
         $data['shippings'] = Shipping::all();
         $data['countries'] = Country::all();
         $data['city'] = City::all();
         $data['state'] = CountryState::all();
         $data['couponValue'] = 'dfgdfg';
-        return view('admin.pos.index',$data);
+        return view('admin.pos.index', $this->withPosSharedData($data));
+    }
+
+    protected function withPosSharedData(array $data): array
+    {
+        $data['customers'] = User::where('status', 1)->select('id', 'name', 'email', 'phone')->orderBy('name')->get();
+        $data['selected_customer'] = User::where('status', 1)->select('id', 'name', 'email', 'phone')->find(session('pos_customer_id'));
+        $data['states'] = $data['state'] ?? CountryState::all();
+        $data['cities'] = $data['city'] ?? City::all();
+
+        return $data;
+    }
+
+    protected function isAjaxRequest(?Request $request = null): bool
+    {
+        $request = $request ?: request();
+
+        return $request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest';
+    }
+
+    protected function posCartViewData(): array
+    {
+        $couponCode = session('pos_coupon_code');
+        $coupon = $couponCode
+            ? Coupon::where(['code' => $couponCode, 'status' => 1])->first()
+            : null;
+
+        return [
+            'setting' => Setting::first(),
+            'cart_products' => ShoppingCart::with('card_product')
+                ->where('user_id', Auth::guard('admin')->user()->id)
+                ->orderBy('id', 'desc')
+                ->get(),
+            'coupon' => $coupon,
+            'couponValue' => $couponCode ?: '',
+        ];
+    }
+
+    protected function calculatePosTotals(array $viewData): array
+    {
+        $setting = $viewData['setting'];
+        $cartProducts = $viewData['cart_products'];
+        $coupon = $viewData['coupon'] ?? null;
+        $grandTotal = 0;
+        $taxRate = floatval($setting->tax ?? 0);
+        $cuponPct = $coupon ? floatval($coupon->discount) : 0;
+
+        foreach ($cartProducts as $product) {
+            if (!$product->card_product) {
+                continue;
+            }
+            $unit = $product->card_product->offer_price === '' || $product->card_product->offer_price === null
+                ? floatval($product->card_product->price)
+                : floatval($product->card_product->offer_price);
+            $grandTotal += $unit * intval($product->qty);
+        }
+
+        $tax = $grandTotal * ($taxRate / 100);
+        $discount = $grandTotal * ($cuponPct / 100);
+        $subTotal = ($grandTotal - $discount) + $tax;
+
+        return [
+            'grandTotal' => round($grandTotal, 2),
+            'discount' => round($discount, 2),
+            'tax' => round($tax, 2),
+            'subTotal' => round($subTotal, 2),
+            'currency' => $setting->currency_icon ?? '',
+            'couponValue' => $viewData['couponValue'] ?? '',
+        ];
+    }
+
+    protected function posCartJsonResponse(string $message, string $type = 'success', int $status = 200)
+    {
+        $viewData = $this->posCartViewData();
+        $totals = $this->calculatePosTotals($viewData);
+
+        return response()->json([
+            'ok' => $type === 'success',
+            'message' => $message,
+            'alert' => $type,
+            'html' => view('admin.pos.partials.cart_refresh', $viewData)->render(),
+            'totals' => $totals,
+        ], $status);
+    }
+
+    protected function posCartResult(string $message, string $type = 'success')
+    {
+        if ($this->isAjaxRequest()) {
+            return $this->posCartJsonResponse($message, $type, $type === 'success' ? 200 : 422);
+        }
+
+        return redirect()->back()->with(['messege' => $message, 'alert-type' => $type]);
+    }
+
+    public function searchCustomers(Request $request)
+    {
+        $q = trim((string) $request->get('q', ''));
+        $customers = User::where('status', 1)
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('name', 'like', '%'.$q.'%')
+                        ->orWhere('email', 'like', '%'.$q.'%')
+                        ->orWhere('phone', 'like', '%'.$q.'%');
+                });
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name', 'email', 'phone']);
+
+        return response()->json($customers);
+    }
+
+    public function selectCustomer(Request $request)
+    {
+        $request->validate([
+            'customer_id' => 'required|exists:users,id',
+        ]);
+
+        session(['pos_customer_id' => (int) $request->customer_id]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function customerAddress($id)
+    {
+        $customer = User::where('status', 1)->findOrFail($id);
+        $address = Address::where('user_id', $customer->id)
+            ->orderByDesc('default_shipping')
+            ->orderByDesc('default_billing')
+            ->first();
+
+        return response()->json([
+            'customer' => [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'email' => $customer->email,
+                'phone' => $customer->phone,
+            ],
+            'has_address' => (bool) ($address && $address->address),
+            'address' => $address ? [
+                'name' => $address->name,
+                'email' => $address->email,
+                'phone' => $address->phone,
+                'address' => $address->address,
+                'delivery_area' => $address->delivery_area ?: 'inside',
+                'type' => $address->type,
+                'is_default' => (bool) ($address->default_billing || $address->default_shipping),
+            ] : null,
+        ]);
     }
 
     public function AddProduct($id)
@@ -123,40 +274,28 @@ class PosController extends Controller
                         $qty = $cart->qty + 1;
                         $datacode= array();
                         $datacode['qty'] = $qty;
-                        $code_reg = ShoppingCart::where('product_id',$id)->where('user_id',Auth::guard('admin')->user()->id)
+                        ShoppingCart::where('product_id',$id)->where('user_id',Auth::guard('admin')->user()->id)
                          ->update($datacode);
-    
-                        $notification = trans('admin_validation.Product Quantity Updated');
-                        $notification=array('messege'=>$notification,'alert-type'=>'success');
-                        return redirect()->back()->with($notification);
-                    }else{
-                        $notification = trans('admin_validation.This Product Are Out of Stock');
-                        $notification=array('messege'=>$notification,'alert-type'=>'error');
-                        return redirect()->back()->with($notification);
-                    }
-                   
 
-                }else{
-                    $cart = new ShoppingCart();
-                    $cart->user_id = Auth::guard('admin')->user()->id;
-                    $cart->product_id = $id;
-                    $cart->qty = 1;
-                    $cart->save();
-                    $notification = trans('admin_validation.Product Added');
-                    $notification=array('messege'=>$notification,'alert-type'=>'success');
-                    return redirect()->back()->with($notification);
+                        return $this->posCartResult(trans('admin_validation.Product Quantity Updated'), 'success');
+                    }
+
+                    return $this->posCartResult(trans('admin_validation.This Product Are Out of Stock'), 'error');
                 }
-            }else{
-                $notification = trans('admin_validation.This Product Are Out of Stock');
-                $notification=array('messege'=>$notification,'alert-type'=>'error');
-                return redirect()->back()->with($notification);
+
+                $cart = new ShoppingCart();
+                $cart->user_id = Auth::guard('admin')->user()->id;
+                $cart->product_id = $id;
+                $cart->qty = 1;
+                $cart->save();
+
+                return $this->posCartResult(trans('admin_validation.Product Added'), 'success');
             }
-        }else{
-            $notification = trans('admin_validation.Sry First You Need To Login');
-            $notification=array('messege'=>$notification,'alert-type'=>'error');
-            return redirect()->back()->with($notification);
+
+            return $this->posCartResult(trans('admin_validation.This Product Are Out of Stock'), 'error');
         }
 
+        return $this->posCartResult(trans('admin_validation.Sry First You Need To Login'), 'error');
     }
 
     public function AddProductWithDetils(Request $request, $id)
@@ -228,83 +367,54 @@ class PosController extends Controller
     }
 
     public function cartIncremet($id) {
-
-        $check = ShoppingCart::where('id',$id)->first();
-        $check_stock = Product::where('id',$check->product_id)->select('qty')->first();
-        $qty = $check_stock->qty;
-        if($check->user_id == Auth::guard('admin')->user()->id){
-            if($qty >= $check->qty + 1){
-                $incress_qty = $check->qty + 1;
-                $datacode= array();
-                        $datacode['qty'] = $incress_qty;
-                        $code_reg = ShoppingCart::where('id',$id)
-                        ->update($datacode);
-
-                $notification = trans('admin_validation.Product Quantity Updated');
-                $notification=array('messege'=>$notification,'alert-type'=>'success');
-                return redirect()->back()->with($notification);
-            }else{
-                $notification = trans('admin_validation.This Product Are Out of Stock');
-                $notification=array('messege'=>$notification,'alert-type'=>'error');
-                return redirect()->back()->with($notification);  
-            }
-            
-        }else{
-            $notification = trans('admin_validation.Sry Somthin Went To Wrong');
-            $notification=array('messege'=>$notification,'alert-type'=>'error');
-            return redirect()->back()->with($notification);
+        $check = ShoppingCart::where('id', $id)->first();
+        if (!$check) {
+            return $this->posCartResult(trans('admin_validation.Sry Somthin Went To Wrong'), 'error');
         }
 
+        $check_stock = Product::where('id', $check->product_id)->select('qty')->first();
+        $qty = $check_stock->qty ?? 0;
+        if ($check->user_id == Auth::guard('admin')->user()->id) {
+            if ($qty >= $check->qty + 1) {
+                ShoppingCart::where('id', $id)->update(['qty' => $check->qty + 1]);
+                return $this->posCartResult(trans('admin_validation.Product Quantity Updated'), 'success');
+            }
+
+            return $this->posCartResult(trans('admin_validation.This Product Are Out of Stock'), 'error');
+        }
+
+        return $this->posCartResult(trans('admin_validation.Sry Somthin Went To Wrong'), 'error');
     }
 
     public function cartDecrement($id) {
-        $check = ShoppingCart::where('id',$id)->first();
-        if($check->user_id == Auth::guard('admin')->user()->id && 1 < $check->qty){
-            $incress_qty = $check->qty - 1;
-            $datacode= array();
-                     $datacode['qty'] = $incress_qty;
-                     $code_reg = ShoppingCart::where('id',$id)
-                      ->update($datacode);
-
-            $notification = trans('admin_validation.Product Quantity Updated');
-            $notification=array('messege'=>$notification,'alert-type'=>'success');
-            return redirect()->back()->with($notification);
-        }else{
-            $notification = trans('admin_validation.Sry Somthin Went To Wrong');
-            $notification=array('messege'=>$notification,'alert-type'=>'error');
-            return redirect()->back()->with($notification);
+        $check = ShoppingCart::where('id', $id)->first();
+        if (!$check) {
+            return $this->posCartResult(trans('admin_validation.Sry Somthin Went To Wrong'), 'error');
         }
 
+        if ($check->user_id == Auth::guard('admin')->user()->id && $check->qty > 1) {
+            ShoppingCart::where('id', $id)->update(['qty' => $check->qty - 1]);
+            return $this->posCartResult(trans('admin_validation.Product Quantity Updated'), 'success');
+        }
+
+        return $this->posCartResult(trans('admin_validation.Sry Somthin Went To Wrong'), 'error');
     }
 
-
-
     public function Destroy($id) {
-        $check = ShoppingCart::where('id',$id)->first();
-        if($check->user_id == Auth::guard('admin')->user()->id){
-            $varient_data = ShoppingCartVariant::where('shopping_cart_id',$id);
-            $varient_data -> delete();
-            $data = ShoppingCart::where('id',$id);
-            $data->delete();
-            $notification = trans('admin_validation.Product Removed Successfully');
-            $notification=array('messege'=>$notification,'alert-type'=>'success');
-            return redirect()->back()->with($notification);
-        }else{
-            $notification = trans('admin_validation.Sry Somthin Went To Wrong');
-            $notification=array('messege'=>$notification,'alert-type'=>'error');
-            return redirect()->back()->with($notification);
+        $check = ShoppingCart::where('id', $id)->first();
+        if ($check && $check->user_id == Auth::guard('admin')->user()->id) {
+            ShoppingCartVariant::where('shopping_cart_id', $id)->delete();
+            ShoppingCart::where('id', $id)->delete();
+            return $this->posCartResult(trans('admin_validation.Product Removed Successfully'), 'success');
         }
 
-
+        return $this->posCartResult(trans('admin_validation.Sry Somthin Went To Wrong'), 'error');
     }
 
     public function clearCart() {
-        $data = ShoppingCart::where('user_id',Auth::guard('admin')->user()->id);
-        $data -> delete();
-        $notification = trans('admin_validation.Product Cart Clear Successfully');
-        $notification=array('messege'=>$notification,'alert-type'=>'success');
-        return redirect()->back()->with($notification);
-
+        ShoppingCart::where('user_id', Auth::guard('admin')->user()->id)->delete();
+        session()->forget('pos_coupon_code');
+        return $this->posCartResult(trans('admin_validation.Product Cart Clear Successfully'), 'success');
     }
 
     public function addCustomer(Request $request)
@@ -313,12 +423,16 @@ class PosController extends Controller
             'name' => 'required',
             'email' => 'required|unique:users',
             'phone' => 'required',
+            'address' => 'required|string|max:1000',
+            'delivery_area' => 'required|in:inside,outside',
         ];
         $customMessages = [
             'name.required' => trans('admin_validation.Name is required'),
             'email.required' => trans('admin_validation.Email is required'),
             'email.unique' => trans('admin_validation.Email already exist'),
             'phone.required' => trans('admin_validation.Phone Number is required'),
+            'address.required' => trans('admin.Address is required'),
+            'delivery_area.required' => trans('admin.Delivery area is required'),
         ];
         $this->validate($request, $rules,$customMessages);
 
@@ -326,9 +440,9 @@ class PosController extends Controller
         $user->name =$request->name;
         $user->email =$request->email;
         $user->phone =$request->phone;
-        $user->country_id =$request->country;
-        $user->state_id =$request->State;
-        $user->city_id =$request->city;
+        $user->country_id = null;
+        $user->state_id = null;
+        $user->city_id = null;
         $user->address =$request->address;
         $user->status = 1;
         $user->password =Hash::make(1234);
@@ -338,22 +452,30 @@ class PosController extends Controller
             $address->name =$request->name;
             $address->email =$request->email;
             $address->phone =$request->phone;
-            $address->country_id =$request->country;
-            $address->state_id =$request->state;
-            $address->city_id =$request->city;
+            $address->country_id = null;
+            $address->state_id = null;
+            $address->city_id = null;
             $address->address =$request->address;
-            $address->type =$request->location;
+            $address->type = $request->location ?: 'Home';
+            $address->delivery_area = $request->delivery_area;
             $address->default_shipping = 1;
             $address->default_billing = 1;
             $address->save();
 
-            MailHelper::setMailConfig();
-            $template=EmailTemplate::where('id',8)->first();
-            $subject=$template->subject;
-            $message=$template->description;
-            $message = str_replace('{{user_name}}',$request->name,$message);
-            Mail::to($user->email)->send(new UserRegistrationFromAdmin($message,$subject,$user));
+            try {
+                MailHelper::setMailConfig();
+                $template=EmailTemplate::where('id',8)->first();
+                if ($template) {
+                    $subject=$template->subject;
+                    $message=$template->description;
+                    $message = str_replace('{{user_name}}',$request->name,$message);
+                    Mail::to($user->email)->send(new UserRegistrationFromAdmin($message,$subject,$user));
+                }
+            } catch (\Throwable $e) {
+                // ignore mail errors
+            }
 
+            session(['pos_customer_id' => $user->id]);
             $notification = trans('admin_validation.Customer Create Successfully');
             $notification = array('messege'=>$notification,'alert-type'=>'success');
             return redirect()->back()->with($notification);
@@ -368,48 +490,27 @@ class PosController extends Controller
 
     public function applyCupon(Request $request)
     {
-        $couponValue = $request->query('coupon');
-
-        if($request->coupon == null){
-            $notification = trans('admin_validation.Coupon Field is required');
-            $notification = array('messege'=>$notification,'alert-type'=>'error');
-            return redirect()->back()->with($notification);
+        if ($request->coupon == null) {
+            return $this->posCartResult(trans('admin_validation.Coupon Field is required'), 'error');
         }
 
+        $coupon = Coupon::where(['code' => $request->coupon, 'status' => 1])->first();
 
-        $data['coupon'] = Coupon::where(['code' => $request->coupon, 'status' => 1])->first();
-
-        if(!$data['coupon']){
-            $notification = trans('admin_validation.Invalid Coupon');
-            $notification = array('messege'=>$notification,'alert-type'=>'error');
-            return redirect()->back()->with($notification);
+        if (!$coupon) {
+            return $this->posCartResult(trans('admin_validation.Invalid Coupon'), 'error');
         }
 
-        if($data['coupon']->expired_date < date('Y-m-d')){
-            $notification = trans('admin_validation.Coupon already expired');
-            $notification = array('messege'=>$notification,'alert-type'=>'error');
-            return redirect()->back()->with($notification);
+        if ($coupon->expired_date < date('Y-m-d')) {
+            return $this->posCartResult(trans('admin_validation.Coupon already expired'), 'error');
         }
 
-        if($data['coupon']->apply_qty >=  $data['coupon']->max_quantity ){
-            $notification = trans('admin_validation.Sorry! You can not apply this coupon');
-            $notification = array('messege'=>$notification,'alert-type'=>'error');
-            return redirect()->back()->with($notification);
+        if ($coupon->apply_qty >= $coupon->max_quantity) {
+            return $this->posCartResult(trans('admin_validation.Sorry! You can not apply this coupon'), 'error');
         }
 
-        Paginator::useBootstrap();
-        $data['brands'] = Brand::all();
-        $data['products'] = Product::where(['vendor_id' => 0])->where(['status' => 1])->orderBy('id','desc')->paginate(18);
-        $data['setting'] = Setting::first();
-        $data['categories'] = Category::with('subCategories','products')->get();
-        $data['cart_products'] = ShoppingCart::where('user_id',Auth::guard('admin')->user()->id)->orderBy('id','desc')->get();
-        $data['customers'] = User::where('status',1)->select('id','name')->orderBy('id','asc')->get();
-        $data['shippings'] = Shipping::all();
-        $data['couponValue'] = $request->query('coupon');
-        $data['countries'] = Country::all();
-        $data['city'] = City::all();
-        $data['state'] = CountryState::all();
-        return view('admin.pos.index',$data);
+        session(['pos_coupon_code' => $request->coupon]);
+
+        return $this->posCartResult(trans('user.Coupon Applied'), 'success');
     }
 
     public function orderSubmit(Request $request){
@@ -543,11 +644,19 @@ class PosController extends Controller
             $orderProduct->qty = $cartProduct->qty;
             $orderProduct->save();
 
-            // update product stock
-
-            $qty = $product->qty - $cartProduct->qty;
-            $product->qty = $qty;
-            $product->save();
+            try {
+                app(\App\Services\StockService::class)->deductForSale(
+                    (int) $product->id,
+                    (int) $cartProduct->qty,
+                    $order->order_id,
+                    Auth::guard('admin')->id(),
+                    'order',
+                    (int) $order->id
+                );
+            } catch (\InvalidArgumentException $e) {
+                $product->qty = max(0, (int) $product->qty - (int) $cartProduct->qty);
+                $product->save();
+            }
 
             // store prouct variant
 
@@ -571,28 +680,65 @@ class PosController extends Controller
                 "<br>";
         }
 
-         // store shipping and billing address
+         // Order address only (does not change customer's saved address)
+         $customer = User::find($request->customer_id);
+         $saved = Address::where('user_id', $request->customer_id)
+             ->orderByDesc('default_billing')
+             ->first();
 
-         $billing = Address::where('user_id',$request->customer_id)->first();
-         $shipping = Address::where('user_id',$request->customer_id)->first();
+         $name = $customer->name ?? 'Walk-in Customer';
+         $email = $customer->email ?? null;
+         $phone = $customer->phone ?? null;
+         $line = $request->filled('address_line')
+             ? $request->address_line
+             : ($saved->address ?? '');
+         $deliveryArea = $request->filled('delivery_area')
+             ? $request->delivery_area
+             : ($saved->delivery_area ?? 'inside');
+
+         if (! $line) {
+             $notification = array('messege' => trans('admin.Address is required'), 'alert-type' => 'error');
+             return redirect()->back()->with($notification);
+         }
+
+         // If customer has no saved address, save to profile for next time
+         if (! $saved) {
+             $saved = new Address();
+             $saved->user_id = $request->customer_id;
+             $saved->name = $name;
+             $saved->email = $email;
+             $saved->phone = $phone;
+             $saved->address = $line;
+             $saved->delivery_area = $deliveryArea;
+             $saved->type = 'Home';
+             $saved->default_shipping = 1;
+             $saved->default_billing = 1;
+             $saved->save();
+             if ($customer) {
+                 $customer->address = $line;
+                 $customer->save();
+             }
+         }
+
          $orderAddress = new OrderAddress();
          $orderAddress->order_id = $order->id;
-         $orderAddress->billing_name = $billing->name;
-         $orderAddress->billing_email = $billing->email;
-         $orderAddress->billing_phone = $billing->phone;
-         $orderAddress->billing_address = $billing->address;
-         $orderAddress->billing_country = $billing->country->name;
-         $orderAddress->billing_state = $billing->countryState->name;
-         $orderAddress->billing_city = $billing->city->name;
-         $orderAddress->billing_address_type = $billing->type;
-         $orderAddress->shipping_name = $shipping->name;
-         $orderAddress->shipping_email = $shipping->email;
-         $orderAddress->shipping_phone = $shipping->phone;
-         $orderAddress->shipping_address = $shipping->address;
-         $orderAddress->shipping_country = $shipping->country->name;
-         $orderAddress->shipping_state = $shipping->countryState->name;
-         $orderAddress->shipping_city = $shipping->city->name;
-         $orderAddress->shipping_address_type = $shipping->type;
+         $orderAddress->billing_name = $name;
+         $orderAddress->billing_email = $email;
+         $orderAddress->billing_phone = $phone;
+         $orderAddress->billing_address = $line;
+         $orderAddress->billing_country = 'Bangladesh';
+         $orderAddress->billing_state = null;
+         $orderAddress->billing_city = null;
+         $orderAddress->billing_address_type = $deliveryArea;
+         $orderAddress->shipping_name = $name;
+         $orderAddress->shipping_email = $email;
+         $orderAddress->shipping_phone = $phone;
+         $orderAddress->shipping_address = $line;
+         $orderAddress->shipping_country = 'Bangladesh';
+         $orderAddress->shipping_state = null;
+         $orderAddress->shipping_city = null;
+         $orderAddress->shipping_address_type = $deliveryArea;
+         $orderAddress->delivery_area = $deliveryArea;
          $orderAddress->save();
 
          foreach ($cartProducts as $cartProduct) {
@@ -605,34 +751,41 @@ class PosController extends Controller
          }
          
             $setting = Setting::first();
-            MailHelper::setMailConfig();
-            $template = EmailTemplate::where("id", 6)->first();
-            $subject = $template->subject;
-            $message = $template->description;
-            $message = str_replace("{{user_name}}", $billing->name, $message);
-    
-            $message = str_replace(
-                "{{total_amount}}",
-                $setting->currency_icon . $total_price,
-                $message
-            );
-    
-            $message = str_replace("{{payment_method}}",$payment_method, $message);
-            $message = str_replace("{{payment_status}}", $paymetn_status, $message);
-            $message = str_replace("{{order_status}}", $order_status, $message);
-            $message = str_replace(
-                "{{order_date}}",
-                $order->created_at->format("d F, Y"),
-                $message
-            );
-    
-            $message = str_replace("{{order_detail}}", $order_details, $message);
-            Mail::to($shipping->email)->send(new OrderSuccessfully($message, $subject));
-         
+            $mailName = $orderAddress->billing_name;
+            $mailEmail = $orderAddress->shipping_email ?: $orderAddress->billing_email;
+            if ($mailEmail) {
+                try {
+                    MailHelper::setMailConfig();
+                    $template = EmailTemplate::where("id", 6)->first();
+                    if ($template) {
+                        $subject = $template->subject;
+                        $message = $template->description;
+                        $message = str_replace("{{user_name}}", $mailName, $message);
+                        $message = str_replace(
+                            "{{total_amount}}",
+                            $setting->currency_icon . $total_price,
+                            $message
+                        );
+                        $message = str_replace("{{payment_method}}",$payment_method, $message);
+                        $message = str_replace("{{payment_status}}", $paymetn_status, $message);
+                        $message = str_replace("{{order_status}}", $order_status, $message);
+                        $message = str_replace(
+                            "{{order_date}}",
+                            $order->created_at->format("d F, Y"),
+                            $message
+                        );
+                        $message = str_replace("{{order_detail}}", $order_details, $message);
+                        Mail::to($mailEmail)->send(new OrderSuccessfully($message, $subject));
+                    }
+                } catch (\Throwable $e) {
+                    // Keep order success even if mail fails
+                }
+            }
 
+        session()->forget('pos_customer_id');
         $notification = trans('admin_validation.Order Created SuccesFully');
         $notification = array('messege'=>$notification,'alert-type'=>'success');
-        return redirect()->route('admin.pos.index')->with($notification);
+        return redirect()->route('admin.order-show', $order->id)->with($notification);
 
 
 
@@ -717,45 +870,55 @@ class PosController extends Controller
 
     public function updatePosCart(Request $request)
     {
-        // $requestData = $request->all();
-        // dd($requestData);
-        // exit();
-    $rules = [
-        'qty_update.*' => ['required', 'integer', 'min:1'],
-    ];
+        $isAjax = $request->ajax() || $request->wantsJson();
+        $rules = [
+            'qty_update' => ['required', 'array'],
+            'qty_update.*' => ['required', 'integer', 'min:1'],
+        ];
 
-    $messages = [
-        'qty_update.*.required' => 'admin_validation.Quantity is required for all products.',
-        'qty_update.*.integer' => 'admin_validation.Quantity must be an integer.',
-        'qty_update.*.min' => 'admin_validation.Quantity cannot be negative.',
-    ];
-    $validator = Validator::make($request->all(), $rules, $messages);
-    if ($validator->fails()) {
-        return redirect()->back()
-            ->withErrors($validator)
-            ->withInput();
-    }
+        $messages = [
+            'qty_update.required' => trans('admin_validation.Quantity is required for all products.'),
+            'qty_update.*.required' => trans('admin_validation.Quantity is required for all products.'),
+            'qty_update.*.integer' => trans('admin_validation.Quantity must be an integer.'),
+            'qty_update.*.min' => trans('admin_validation.Quantity cannot be negative.'),
+        ];
+        $validator = Validator::make($request->all(), $rules, $messages);
+        if ($validator->fails()) {
+            if ($isAjax) {
+                return response()->json(['message' => $validator->errors()->first()], 422);
+            }
+
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
 
         $qtyUpdate = $request->input('qty_update');
 
         foreach ($qtyUpdate as $productId => $quantity) {
             $cartProduct = ShoppingCart::find($productId);
-            $check_stock = Product::where('id',$cartProduct->product_id)->select('qty')->first();
-            $qty = $check_stock->qty;
-            
-            if($qty >= $quantity){
+            if (!$cartProduct) {
+                continue;
+            }
+            $check_stock = Product::where('id', $cartProduct->product_id)->select('qty')->first();
+            $qty = $check_stock->qty ?? 0;
+
+            if ($qty >= $quantity) {
                 $cartProduct->qty = $quantity;
                 $cartProduct->save();
-            }else{
+            } else {
                 $notification = trans('admin_validation.This Product Are Out of Stock');
-                $notification=array('messege'=>$notification,'alert-type'=>'error');
-                return redirect()->back()->with($notification);  
+                if ($isAjax) {
+                    return response()->json(['message' => $notification], 422);
+                }
+                $notification = array('messege' => $notification, 'alert-type' => 'error');
+                return redirect()->back()->with($notification);
             }
-
-           
         }
+
         $notification = trans('admin_validation.Update Order Quantity');
-        $notification = array('messege'=>$notification,'alert-type'=>'success');
+        if ($isAjax) {
+            return $this->posCartJsonResponse($notification, 'success');
+        }
+        $notification = array('messege' => $notification, 'alert-type' => 'success');
         return redirect()->back()->with($notification);
     }
 

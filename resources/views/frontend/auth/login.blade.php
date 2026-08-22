@@ -483,7 +483,12 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            window.location.href = data.redirect;
+            if (window.showNotification) {
+                showNotification(data.success, 'success');
+            }
+            setTimeout(function () {
+                window.location.href = data.redirect;
+            }, 700);
         } else if (data.error) {
             showError(data.error);
         }
@@ -500,25 +505,11 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
 });
 
 function showError(message) {
-    const form = document.getElementById('loginForm');
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'alert alert-danger alert-dismissible fade show';
-    errorDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    form.insertBefore(errorDiv, form.firstChild);
+    if (window.showNotification) {
+        showNotification(message, 'error');
+        return;
+    }
+    alert(message);
 }
-
-// Show success/error messages
-@if(session('messege'))
-    setTimeout(function() {
-        const alert = document.querySelector('.alert');
-        if (alert) {
-            alert.style.opacity = '0';
-            setTimeout(() => alert.remove(), 300);
-        }
-    }, 5000);
-@endif
 </script>
 @endsection

@@ -77,14 +77,10 @@
                                             <p class="card-text mb-1"><strong>Email:</strong> {{ $address->email }}</p>
                                             <p class="card-text mb-1"><strong>Phone:</strong> {{ $address->phone }}</p>
                                             <p class="card-text mb-1"><strong>Type:</strong> <span class="badge bg-secondary">{{ ucfirst($address->type) }}</span></p>
+                                            <p class="card-text mb-1"><strong>Area:</strong> {{ ($address->delivery_area ?? 'inside') === 'outside' ? 'Outside' : 'Inside' }}</p>
                                             <p class="card-text mb-2"><strong>Address:</strong> {{ $address->address }}</p>
-                                            @if($address->zip_code)
-                                            <p class="card-text mb-1"><strong>ZIP Code:</strong> {{ $address->zip_code }}</p>
-                                            @endif
                                             <p class="card-text mb-0">
-                                                <small class="text-muted">
-                                                    {{ $address->city->name ?? 'N/A' }}, {{ $address->countryState->name ?? 'N/A' }}, {{ $address->country->name ?? 'N/A' }}
-                                                </small>
+                                                <small class="text-muted">Bangladesh</small>
                                             </p>
                                         </div>
                                     </div>

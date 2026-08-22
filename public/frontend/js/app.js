@@ -496,53 +496,212 @@ function initSmoothScrolling() {
     });
 }
 
-// Show Notification
-function showNotification(message, type = 'success') {
-    // Create a temporary alert element
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
-    alertDiv.setAttribute('role', 'alert');
-    alertDiv.style.position = 'fixed';
-    alertDiv.style.top = '20px';
-    alertDiv.style.right = '20px';
-    alertDiv.style.zIndex = '9999';
-    alertDiv.style.minWidth = '300px';
-    alertDiv.style.maxWidth = '400px';
-    
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-    
-    document.body.appendChild(alertDiv);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.parentNode.removeChild(alertDiv);
+// Professional toast notifications
+(function () {
+    const TOAST_ICONS = {
+        success: 'fas fa-check-circle',
+        error: 'fas fa-times-circle',
+        danger: 'fas fa-times-circle',
+        warning: 'fas fa-exclamation-triangle',
+        info: 'fas fa-info-circle'
+    };
+
+    const TOAST_TITLES = {
+        success: 'Success',
+        error: 'Error',
+        danger: 'Error',
+        warning: 'Warning',
+        info: 'Info'
+    };
+
+    function ensureToastContainer() {
+        let container = document.getElementById('toast-container');
+        if (container) return container;
+
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'app-toast-container';
+        container.setAttribute('aria-live', 'polite');
+        container.setAttribute('aria-atomic', 'true');
+        document.body.appendChild(container);
+
+        if (!document.getElementById('app-toast-styles')) {
+            const style = document.createElement('style');
+            style.id = 'app-toast-styles';
+            style.textContent = `
+                .app-toast-container {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 10800;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    width: min(380px, calc(100vw - 32px));
+                    pointer-events: none;
+                }
+                .app-toast {
+                    pointer-events: auto;
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 12px;
+                    padding: 14px 16px;
+                    border-radius: 12px;
+                    background: #fff;
+                    border: 1px solid #ebe7f2;
+                    box-shadow: 0 12px 30px rgba(74, 74, 92, 0.14);
+                    transform: translateX(24px);
+                    opacity: 0;
+                    transition: transform .25s ease, opacity .25s ease;
+                    overflow: hidden;
+                    position: relative;
+                }
+                .app-toast.is-visible {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                .app-toast.is-hiding {
+                    transform: translateX(24px);
+                    opacity: 0;
+                }
+                .app-toast__icon {
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 10px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                    font-size: 1rem;
+                }
+                .app-toast__body { flex: 1; min-width: 0; }
+                .app-toast__title {
+                    font-size: 0.92rem;
+                    font-weight: 700;
+                    color: #4A4A5C;
+                    margin: 0 0 2px;
+                    line-height: 1.2;
+                }
+                .app-toast__message {
+                    font-size: 0.88rem;
+                    color: #6b6580;
+                    margin: 0;
+                    line-height: 1.45;
+                    word-break: break-word;
+                }
+                .app-toast__close {
+                    border: 0;
+                    background: transparent;
+                    color: #9a94a8;
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 8px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                }
+                .app-toast__close:hover { background: #f4f1f8; color: #4A4A5C; }
+                .app-toast__progress {
+                    position: absolute;
+                    left: 0;
+                    bottom: 0;
+                    height: 3px;
+                    width: 100%;
+                    transform-origin: left center;
+                    animation: appToastProgress linear forwards;
+                }
+                .app-toast--success .app-toast__icon { background: rgba(25,135,84,.12); color: #198754; }
+                .app-toast--success .app-toast__progress { background: #198754; }
+                .app-toast--error .app-toast__icon,
+                .app-toast--danger .app-toast__icon { background: rgba(220,53,69,.12); color: #dc3545; }
+                .app-toast--error .app-toast__progress,
+                .app-toast--danger .app-toast__progress { background: #dc3545; }
+                .app-toast--warning .app-toast__icon { background: rgba(255,193,7,.18); color: #c79100; }
+                .app-toast--warning .app-toast__progress { background: #ffc107; }
+                .app-toast--info .app-toast__icon { background: rgba(139,123,168,.14); color: #8B7BA8; }
+                .app-toast--info .app-toast__progress { background: #8B7BA8; }
+                @keyframes appToastProgress {
+                    from { transform: scaleX(1); }
+                    to { transform: scaleX(0); }
+                }
+                @media (max-width: 575.98px) {
+                    .app-toast-container {
+                        top: 12px;
+                        right: 12px;
+                        left: 12px;
+                        width: auto;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
         }
-    }, 5000);
-    
-    // Add click handler for close button
-    const closeBtn = alertDiv.querySelector('.btn-close');
-    if (closeBtn) {
-        closeBtn.onclick = () => {
-            if (alertDiv.parentNode) {
-                alertDiv.parentNode.removeChild(alertDiv);
-            }
-        };
+
+        return container;
     }
+
+    function normalizeType(type) {
+        const t = String(type || 'success').toLowerCase();
+        if (t === 'danger') return 'error';
+        if (['success', 'error', 'warning', 'info'].includes(t)) return t;
+        return 'info';
+    }
+
+    window.showNotification = function showNotification(message, type = 'success', options = {}) {
+        const normalized = normalizeType(type);
+        const duration = typeof options.duration === 'number' ? options.duration : 4200;
+        const container = ensureToastContainer();
+
+        const toast = document.createElement('div');
+        toast.className = `app-toast app-toast--${normalized}`;
+        toast.setAttribute('role', 'alert');
+
+        const safeMessage = String(message || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        toast.innerHTML = `
+            <span class="app-toast__icon"><i class="${TOAST_ICONS[normalized]}"></i></span>
+            <div class="app-toast__body">
+                <p class="app-toast__title">${TOAST_TITLES[normalized]}</p>
+                <p class="app-toast__message">${safeMessage}</p>
+            </div>
+            <button type="button" class="app-toast__close" aria-label="Close"><i class="fas fa-times"></i></button>
+            <span class="app-toast__progress" style="animation-duration:${duration}ms"></span>
+        `;
+
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('is-visible'));
+
+        const removeToast = () => {
+            toast.classList.add('is-hiding');
+            toast.classList.remove('is-visible');
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 250);
+        };
+
+        const timer = setTimeout(removeToast, duration);
+        toast.querySelector('.app-toast__close').addEventListener('click', () => {
+            clearTimeout(timer);
+            removeToast();
+        });
+
+        return toast;
+    };
+
+    window.hideNotification = function hideNotification() {
+        document.querySelectorAll('.app-toast').forEach((toast) => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        });
+    };
+})();
+
+// Keep legacy function name available in non-window scope
+function showNotification(message, type = 'success', options = {}) {
+    return window.showNotification(message, type, options);
 }
 
-// Hide Notification
 function hideNotification() {
-    // Remove all temporary notifications
-    const alerts = document.querySelectorAll('.alert[style*="position: fixed"]');
-    alerts.forEach(alert => {
-        if (alert.parentNode) {
-            alert.parentNode.removeChild(alert);
-        }
-    });
+    return window.hideNotification();
 }
 
 // Initialize cart and wishlist counts on page load

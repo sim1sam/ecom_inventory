@@ -144,7 +144,7 @@
 
                                 <div class="form-group col-12">
                                     <label>{{ __('admin.Purchase Price (Optional)') }} <span class="text-muted" id="openingPriceHint">({{ __('admin.Required if opening stock is added') }})</span></label>
-                                   <input type="number" step="0.01" class="form-control" name="cost_price" id="costPriceInput" value="{{ old('cost_price') }}" min="0" placeholder="{{ __('admin.Leave empty if no opening stock') }}">
+                                   <input type="number" step="0.0001" class="form-control" name="cost_price" id="costPriceInput" value="{{ old('cost_price') }}" min="0" placeholder="{{ __('admin.Leave empty if no opening stock') }}">
                                     <small class="text-muted">{{ __('admin.Purchase price optional on PO too. Set here for opening stock, or on PO when receiving stock') }}</small>
                                 </div>
 

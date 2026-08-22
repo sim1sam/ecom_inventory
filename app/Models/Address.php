@@ -10,8 +10,9 @@ class Address extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'name', 'email', 'phone', 'country_id', 'state_id', 
-        'city_id', 'address', 'zip_code', 'type', 'default_shipping', 'default_billing'
+        'user_id', 'name', 'email', 'phone', 'country_id', 'state_id',
+        'city_id', 'zip_code', 'address', 'type', 'delivery_area',
+        'default_shipping', 'default_billing'
     ];
 
     public function country(){

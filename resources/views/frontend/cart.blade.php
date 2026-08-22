@@ -12,41 +12,6 @@
         </ol>
     </nav>
 
-    <!-- Notification Messages -->
-    <div id="notification-area">
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if(session('warning'))
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                {{ session('warning') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if(session('info'))
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <i class="fas fa-info-circle me-2"></i>
-                {{ session('info') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-    </div>
-
     <div class="row">
         <div class="col-lg-8">
             <div class="card">
@@ -609,43 +574,11 @@ class ShoppingCart {
     }
 
     showNotification(message, type = 'success') {
-        // Display notification in the notification area instead of corner popup
-        const notificationArea = document.getElementById('notification-area');
-        
-        // Create alert element
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
-        alertDiv.setAttribute('role', 'alert');
-        
-        // Set icon based on type
-        let icon = 'fas fa-info-circle';
-        if (type === 'success') {
-            icon = 'fas fa-check-circle';
-        } else if (type === 'danger' || type === 'error') {
-            icon = 'fas fa-exclamation-circle';
-        } else if (type === 'warning') {
-            icon = 'fas fa-exclamation-triangle';
+        if (window.showNotification) {
+            window.showNotification(message, type);
+            return;
         }
-        
-        alertDiv.innerHTML = `
-            <i class="${icon} me-2"></i>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        `;
-        
-        // Clear existing notifications and add new one
-        notificationArea.innerHTML = '';
-        notificationArea.appendChild(alertDiv);
-        
-        // Scroll to notification area
-        notificationArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
-        }, 5000);
+        alert(message);
     }
 }
 

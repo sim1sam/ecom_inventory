@@ -678,21 +678,10 @@
     // addToCart function removed - only available on product details page
     
     function showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} position-fixed`;
-        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-        notification.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="fas fa-check-circle me-2"></i>
-                ${message}
-            </div>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        if (typeof window.showNotification === 'function') {
+            return window.showNotification(message, type);
+        }
+        alert(message);
     }
     });
     

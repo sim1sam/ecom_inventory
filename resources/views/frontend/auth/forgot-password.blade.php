@@ -284,29 +284,29 @@ document.getElementById('resendBtn').addEventListener('click', function() {
             this.innerHTML = '<i class="fas fa-check"></i> {{__('Email Sent!')}}';
             this.classList.remove('btn-outline-primary');
             this.classList.add('btn-success');
+            if (window.showNotification) {
+                showNotification(typeof data.success === 'string' ? data.success : '{{__('Email Sent!')}}', 'success');
+            }
         } else {
             this.innerHTML = '{{__('Resend Email')}}';
             this.disabled = false;
-            alert(data.error || '{{__('Something went wrong. Please try again.')}}');
+            if (window.showNotification) {
+                showNotification(data.error || '{{__('Something went wrong. Please try again.')}}', 'error');
+            } else {
+                alert(data.error || '{{__('Something went wrong. Please try again.')}}');
+            }
         }
     })
     .catch(error => {
         this.innerHTML = '{{__('Resend Email')}}';
         this.disabled = false;
-        alert('{{__('Something went wrong. Please try again.')}}');
+        if (window.showNotification) {
+            showNotification('{{__('Something went wrong. Please try again.')}}', 'error');
+        } else {
+            alert('{{__('Something went wrong. Please try again.')}}');
+        }
     });
 });
-
-// Show success/error messages
-@if(session('messege'))
-    setTimeout(function() {
-        const alert = document.querySelector('.alert');
-        if (alert) {
-            alert.style.opacity = '0';
-            setTimeout(() => alert.remove(), 300);
-        }
-    }, 5000);
-@endif
 
 // Auto-focus email input
 document.addEventListener('DOMContentLoaded', function() {

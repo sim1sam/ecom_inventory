@@ -129,7 +129,15 @@ class StockService
             $productId, $warehouseId, $qty, $reason, $note, $referenceNo, $adminId,
             $referenceType, $referenceId, $supplierId
         ) {
-            $stock = $this->ensureWarehouseStock($productId, $warehouseId);
+            $stock = WarehouseStock::where('warehouse_id', $warehouseId)
+                ->where('product_id', $productId)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$stock) {
+                $stock = $this->ensureWarehouseStock($productId, $warehouseId);
+            }
+
             $before = (int) $stock->qty;
 
             if ($before < $qty) {
@@ -226,5 +234,110 @@ class StockService
             null,
             $unitCost
         );
+    }
+
+    public function deductForSale(
+        int $productId,
+        int $qty,
+        ?string $referenceNo = null,
+        ?int $adminId = null,
+        string $referenceType = 'order',
+        ?int $referenceId = null
+    ): void {
+        if ($qty <= 0) {
+            return;
+        }
+
+        DB::transaction(function () use ($productId, $qty, $referenceNo, $adminId, $referenceType, $referenceId) {
+            $this->alignWarehouseToProductQty($productId);
+
+            $remaining = $qty;
+            $defaultId = $this->getDefaultWarehouse()->id;
+            $stocks = WarehouseStock::where('product_id', $productId)
+                ->where('qty', '>', 0)
+                ->lockForUpdate()
+                ->get()
+                ->sortByDesc(fn ($stock) => $stock->warehouse_id === $defaultId ? PHP_INT_MAX : (int) $stock->qty)
+                ->values();
+
+            foreach ($stocks as $stock) {
+                if ($remaining <= 0) {
+                    break;
+                }
+
+                $take = min($remaining, (int) $stock->qty);
+                $this->stockOut(
+                    $productId,
+                    (int) $stock->warehouse_id,
+                    $take,
+                    'sale',
+                    'Order sale',
+                    $referenceNo,
+                    $adminId,
+                    $referenceType,
+                    $referenceId
+                );
+                $remaining -= $take;
+            }
+
+            if ($remaining > 0) {
+                $product = Product::find($productId);
+                if ($product) {
+                    $product->qty = max(0, (int) $product->qty - $remaining);
+                    $product->save();
+                }
+            }
+        });
+    }
+
+    public function alignWarehouseToProductQty(int $productId): void
+    {
+        $product = Product::find($productId);
+        if (!$product) {
+            return;
+        }
+
+        $productQty = (int) $product->qty;
+        $default = $this->ensureWarehouseStock($productId);
+        $stocks = WarehouseStock::where('product_id', $productId)->get();
+        $warehouseTotal = (int) $stocks->sum('qty');
+
+        if ($productQty === $warehouseTotal) {
+            return;
+        }
+
+        if ($productQty > $warehouseTotal) {
+            $default->qty = (int) $default->qty + ($productQty - $warehouseTotal);
+            $default->save();
+
+            return;
+        }
+
+        $need = $warehouseTotal - $productQty;
+        $ordered = $stocks->sortByDesc(fn ($stock) => $stock->warehouse_id === $default->warehouse_id ? 1 : 0);
+
+        foreach ($ordered as $stock) {
+            if ($need <= 0) {
+                break;
+            }
+
+            $take = min($need, (int) $stock->qty);
+            $stock->qty = (int) $stock->qty - $take;
+            $stock->save();
+            $need -= $take;
+        }
+    }
+
+    public function reconcileAllProducts(): int
+    {
+        $count = 0;
+        Product::query()->select('id')->orderBy('id')->chunkById(100, function ($products) use (&$count) {
+            foreach ($products as $product) {
+                $this->alignWarehouseToProductQty((int) $product->id);
+                $count++;
+            }
+        });
+
+        return $count;
     }
 }

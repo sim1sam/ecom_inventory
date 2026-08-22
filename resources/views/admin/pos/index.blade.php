@@ -8,6 +8,112 @@
     rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('backend/pos/assets/css/style.css') }}">
 <link rel="stylesheet" href="{{ asset('backend/pos/assets/css/respondive.css') }}">
+<style>
+    .pos-customer-bar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        width: 100%;
+    }
+    .pos-customer-search-wrap {
+        flex: 1;
+        min-width: 0;
+        position: relative;
+    }
+    .pos-customer-search-wrap .form-control {
+        width: 100%;
+        height: 48px;
+        border-radius: 8px;
+        border: 0;
+        padding: 0 14px;
+    }
+    .pos-customer-bar .billing-btn-three .btn {
+        width: auto !important;
+        min-width: 130px;
+        height: 48px;
+        white-space: nowrap;
+        padding: 0 16px;
+        line-height: 46px;
+    }
+    .pos-customer-results {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 4px);
+        background: #fff;
+        color: #232532;
+        z-index: 40;
+        max-height: 240px;
+        overflow: auto;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(0,0,0,.18);
+        display: none;
+    }
+    .pos-customer-results .item {
+        padding: 10px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .pos-customer-results .item:last-child {
+        border-bottom: 0;
+    }
+    .pos-customer-results .item:hover {
+        background: #f7eef6;
+    }
+    .pos-customer-results .item small {
+        display: block;
+        color: #6b6b6b;
+        font-size: 12px;
+    }
+    .pos-customer-results .no-result {
+        cursor: default;
+        color: #888;
+    }
+    .pos-address-box {
+        margin-top: 4px;
+    }
+    .pos-address-card {
+        border: 1px solid #e8e4ef;
+        border-radius: 12px;
+        padding: 14px 16px;
+        background: linear-gradient(180deg, #fff 0%, #faf8fc 100%);
+        box-shadow: 0 8px 20px rgba(74, 74, 92, 0.08);
+    }
+    .pos-address-card--warn {
+        border-color: #f0d9a8;
+        background: #fffaf0;
+    }
+    .pos-address-card__head {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+    .pos-address-card__icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: rgba(139, 123, 168, 0.14);
+        color: #8B7BA8;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .pos-address-card__meta {
+        font-size: 12px;
+        color: #6b6580;
+        margin-top: 2px;
+    }
+    .pos-address-card__text {
+        color: #4A4A5C;
+        line-height: 1.5;
+        font-size: 14px;
+    }
+    #posCartPanel .apply-promo-code {
+        display: none;
+    }
+</style>
 @endsection
 @section('admin-content')
 <!-- Main Content -->
@@ -290,7 +396,7 @@
 
                                                 <div class="product-item-overlay-btn product-item-overlay-btn-two">
                                                     <a href="{{ route('admin.pos.add.product',$product->id) }}"
-                                                        class="over-btn-two">{{__('admin.Select')}}</a>
+                                                        class="over-btn-two pos-add-product">{{__('admin.Select')}}</a>
                                                     {{-- <button  type="button" class="over-btn-two" data-bs-toggle="modal"
                                                             data-bs-target="">
                                                             Select
@@ -536,16 +642,24 @@
                                         </div>
 
                                         <div class="billing-btn-main">
-                                            <div class="row">
-                                                <div class="col-sm-6">
-                                                    <div class="billing-btn-three">
-
-
-                                                        <button type="button" class="btn btn-primary-two" data-toggle="modal"
-                                                            data-target="#exampleModalLong-1">
-                                                            {{__('admin.Add Customer') }}
-                                                        </button>
-
+                                            <div class="pos-customer-bar">
+                                                <div class="pos-customer-search-wrap">
+                                                    <input type="text"
+                                                        id="posCustomerSearch"
+                                                        class="form-control"
+                                                        autocomplete="off"
+                                                        placeholder="{{ __('admin.Search customer by name, email or phone') }}"
+                                                        value="{{ $selected_customer->name ?? '' }}">
+                                                    <input type="hidden" id="posCustomerId" value="{{ $selected_customer->id ?? '' }}">
+                                                    <div id="posCustomerResults" class="pos-customer-results"></div>
+                                                </div>
+                                                <div class="billing-btn-three">
+                                                    <button type="button" class="btn btn-primary-two" data-toggle="modal"
+                                                        data-target="#exampleModalLong-1">
+                                                        {{__('admin.Add Customer') }}
+                                                    </button>
+                                                </div>
+                                            </div>
 
                                                         <!-- Modal -->
                                                         <div class="modal fade" id="exampleModalLong-1"  role="dialog"
@@ -585,72 +699,35 @@
                                                                             </div>
                                                                         </div>
 
-                                                                        <div class="from-select-main">
-                                                                            <div class="from-select-main-item">
-                                                                                <label for="exampleFormControlInput1" class="form-label">{{__('admin.Country') }} <span style="color: red;">*</span></label>
-                                                                                <div class="from-select-main">
-                                                                                    <select class="form-control select2"  name="country" required>
-                                                                                        @foreach ($countries as $key => $country)
-                                                                                            <option value="{{$country->id}}">{{$country->name}}</option>
-                                                                                        @endforeach
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class="from-select-main-item-two">
-                                                                            <div class="from-select-main">
-                                                                            <div class="from-select-main-item">
-                                                                                <label for="exampleFormControlInput1" class="form-label">{{__('admin.State') }} <span style="color: red;">*</span></label>
-                                                                                <div class="from-select-main">
-
-
-                                                                                    <select class="form-control select2" name="state" aria-label="Default select example"@required(true)>
-                                                                                        <option value="" disabled selected>{{ __('Select a Country') }}</option>
-                                                                                        @php
-                                                                                        $stateCount = count($state);
-                                                                                        @endphp
-                                                                                        @foreach ($state as $key => $state)
-                                                                                            @if ($key < $stateCount - 0)
-                                                                                                <option value="{{$state->id}}">{{$state->name}}</option>
-                                                                                            @endif
-                                                                                        @endforeach
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                            </div>
-                                                                            <div class="from-select-main">
-                                                                            <div class="from-select-main-item">
-                                                                                <label for="exampleFormControlInput1" class="form-label">{{__('admin.City') }} <span style="color: red;">*</span></label>
-                                                                                <div class="from-select-main">
-
-
-                                                                                    <select class="form-control select2" name="city" aria-label="Default select example" required>
-                                                                                        <option value="" disabled selected>{{ __('Select a Country') }}</option>
-                                                                                        @php
-                                                                                        $cityCount = count($city);
-                                                                                        @endphp
-                                                                                        @foreach ($city as $key => $city)
-                                                                                            @if ($key < $cityCount - 0)
-                                                                                                <option value="{{$city->id}}">{{$city->name}}</option>
-                                                                                            @endif
-                                                                                        @endforeach
-                                                                                    </select>
-                                                                                </div>
-                                                                            </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div class=" modal-from-item-d-b">
+                                                                        <div class="modal-from-item-d-b">
                                                                             <div class="modal-from-inner">
-                                                                            <label for="exampleFormControlInput1" class="form-label">{{__('admin.Address') }} <span style="color: red;">*</span></label>
-                                                                            <textarea class="form-control" name="address" id="" cols="30" rows="10"></textarea>
+                                                                            <label class="form-label">{{__('admin.Country') }}</label>
+                                                                            <input type="text" class="form-control" value="Bangladesh" readonly>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="modal-from-item-d-b">
+                                                                            <div class="modal-from-inner">
+                                                                            <label class="form-label">{{__('admin.Address') }} <span style="color: red;">*</span></label>
+                                                                            <textarea class="form-control" name="address" rows="3" placeholder="{{ __('admin.House, road, area, landmark') }}" required></textarea>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="modal-from-item-check mb-3">
+                                                                            <label class="d-block mb-2">{{ __('admin.Delivery Area') }} <span style="color: red;">*</span></label>
+                                                                            <div class="form-check form-check-inline">
+                                                                                <input class="form-check-input" type="radio" name="delivery_area" id="areaInside" value="inside" checked>
+                                                                                <label class="form-check-label" for="areaInside">{{ __('admin.Inside') }}</label>
+                                                                            </div>
+                                                                            <div class="form-check form-check-inline">
+                                                                                <input class="form-check-input" type="radio" name="delivery_area" id="areaOutside" value="outside">
+                                                                                <label class="form-check-label" for="areaOutside">{{ __('admin.Outside') }}</label>
                                                                             </div>
                                                                         </div>
 
                                                                         <div class="modal-from-item-check">
                                                                             <div class="form-check">
-                                                                                <input class="form-check-input" type="radio" name="location" id="homeRadio" value="Home">
+                                                                                <input class="form-check-input" type="radio" name="location" id="homeRadio" value="Home" checked>
                                                                                 <label class="form-check-label" for="homeRadio">
                                                                                     {{__('admin.Home') }}
                                                                                 </label>
@@ -673,22 +750,9 @@
                                                             </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-sm-6 d-flex justify-content-end">
-                                                    <div class="form-group custom-form-group">
-                                                        <form method="post" action="{{ route('admin.pos.update.cart.order') }}">
-                                                            @csrf
-                                                            @method('PUT')
-
-
-                                                            <button type="submit" class="btn btn-one">{{__('admin.Update Cart')}}</button>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
                                 <div class="delivery-information">
                                     <div class="delivery-information-taitel">
@@ -711,189 +775,13 @@
                                         </div>
                                     </div>
 
-                                    <div class="delivery-information-top-item-two-main">
-                                        @php
-                                        $grandTotal = 0;
-                                        $taxRate = floatval($setting->tax);
-                                        $cupon = 0;
-                                        @endphp
-
-                                            @foreach ($cart_products as $index => $product)
-                                            <div class="delivery-information-top-item-two">
-                                                <div class="delivery-information-top-item-two-img">
-                                                    <img src="{{ asset($product->card_product->thumb_image) }}" width="50px"
-                                                        height="50px" alt="img">
-
-                                                    <div class="text">
-                                                        <p>{{$product->card_product->name}}</p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="count">
-                                                    <div class="mainas">
-                                                        <p>
-                                                            <a
-                                                                href="{{ route('admin.pos.cart.decrement.product',$product->id) }}">
-                                                                <span>
-                                                                    <svg width="14" height="2" viewBox="0 0 14 2"
-                                                                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path d="M13 1L1 1" stroke="black"
-                                                                            stroke-width="1.2" stroke-linecap="round"
-                                                                            stroke-linejoin="round" />
-                                                                    </svg>
-                                                                </span>
-                                                            </a>
-                                                        </p>
-                                                    </div>
-                                                    <div class="count-text">
-                                                        <input type="number" name="qty_update[{{ $product->id }}]"  value="{{$product->qty}}">
-                                                    </div>
-                                                    <div class="plus">
-                                                        <p>
-                                                            <a
-                                                                href="{{ route('admin.pos.cart.increment.product',$product->id) }}">
-                                                                <span>
-                                                                    <svg width="14" height="14" viewBox="0 0 14 14"
-                                                                        fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                        <path d="M7 1V13M13 7L1 7" stroke="black"
-                                                                            stroke-width="1.2" stroke-linecap="round"
-                                                                            stroke-linejoin="round" />
-                                                                    </svg>
-                                                                </span>
-                                                            </a>
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="price">
-                                                    @php
-                                                    if($product->card_product->offer_price == '')
-                                                    {
-                                                    $total = $product->qty * $product->card_product->price;
-                                                    $price = $product->card_product->price;
-                                                    }else{
-                                                    $total = $product->qty * $product->card_product->offer_price;
-                                                    $price = $product->card_product->offer_price;
-                                                    }
-                                                    $grandTotal += $total;
-                                                    $tax = ($grandTotal * ($taxRate / 100));
-                                                    if ($coupon) {
-                                                    $cupon = $coupon->discount;
-                                                    }
-                                                    $discount =($grandTotal * ($cupon / 100));
-                                                    $discountedTotal = $grandTotal-$discount;
-                                                    $subTotal = ($discountedTotal + $tax);
-                                                    @endphp
-                                                    <p>{{ $setting->currency_icon }}{{$price}}</p>
-                                                </div>
-
-                                                <div class="action">
-                                                    <a href="{{ route('admin.pos.destroy.product',$product->id) }}">
-                                                        <span>
-                                                            <svg width="19" height="24" viewBox="0 0 19 24" fill="none"
-                                                                xmlns="http://www.w3.org/2000/svg">
-                                                                <path
-                                                                    d="M16.7842 6.29297C16.5061 6.29297 16.2393 6.40348 16.0426 6.60018C15.8459 6.79689 15.7354 7.06368 15.7354 7.34187V19.0801C15.7053 19.6105 15.4668 20.1075 15.0719 20.4629C14.677 20.8183 14.1577 21.0033 13.6271 20.9775H5.25686C4.72622 21.0033 4.2069 20.8183 3.81201 20.4629C3.41712 20.1075 3.17867 19.6105 3.14858 19.0801V7.34187C3.14858 7.06368 3.03807 6.79689 2.84136 6.60018C2.64466 6.40348 2.37786 6.29297 2.09968 6.29297C1.82149 6.29297 1.5547 6.40348 1.358 6.60018C1.16129 6.79689 1.05078 7.06368 1.05078 7.34187V19.0801C1.08072 20.167 1.54018 21.1977 2.32853 21.9466C3.11688 22.6954 4.16986 23.1013 5.25686 23.0753H13.6271C14.7141 23.1013 15.7671 22.6954 16.5554 21.9466C17.3438 21.1977 17.8032 20.167 17.8331 19.0801V7.34187C17.8331 7.06368 17.7226 6.79689 17.5259 6.60018C17.3292 6.40348 17.0624 6.29297 16.7842 6.29297Z" />
-                                                                <path
-                                                                    d="M17.8313 3.14669H13.6357V1.0489C13.6357 0.770713 13.5252 0.503921 13.3285 0.307215C13.1317 0.110509 12.865 0 12.5868 0H6.29339C6.0152 0 5.74841 0.110509 5.5517 0.307215C5.355 0.503921 5.24449 0.770713 5.24449 1.0489V3.14669H1.0489C0.770713 3.14669 0.503921 3.2572 0.307215 3.45391C0.110509 3.65061 0 3.91741 0 4.19559C0 4.47378 0.110509 4.74057 0.307215 4.93727C0.503921 5.13398 0.770713 5.24449 1.0489 5.24449H17.8313C18.1094 5.24449 18.3762 5.13398 18.5729 4.93727C18.7697 4.74057 18.8802 4.47378 18.8802 4.19559C18.8802 3.91741 18.7697 3.65061 18.5729 3.45391C18.3762 3.2572 18.1094 3.14669 17.8313 3.14669ZM7.34228 3.14669V2.0978H11.5379V3.14669H7.34228Z" />
-                                                                <path
-                                                                    d="M8.39272 16.7813V9.43903C8.39272 9.16085 8.28221 8.89406 8.0855 8.69735C7.8888 8.50065 7.622 8.39014 7.34382 8.39014C7.06563 8.39014 6.79884 8.50065 6.60214 8.69735C6.40543 8.89406 6.29492 9.16085 6.29492 9.43903V16.7813C6.29492 17.0595 6.40543 17.3263 6.60214 17.523C6.79884 17.7197 7.06563 17.8302 7.34382 17.8302C7.622 17.8302 7.8888 17.7197 8.0855 17.523C8.28221 17.3263 8.39272 17.0595 8.39272 16.7813Z" />
-                                                                <path
-                                                                    d="M12.588 16.7813V9.43903C12.588 9.16085 12.4775 8.89406 12.2808 8.69735C12.0841 8.50065 11.8173 8.39014 11.5391 8.39014C11.2609 8.39014 10.9942 8.50065 10.7974 8.69735C10.6007 8.89406 10.4902 9.16085 10.4902 9.43903V16.7813C10.4902 17.0595 10.6007 17.3263 10.7974 17.523C10.9942 17.7197 11.2609 17.8302 11.5391 17.8302C11.8173 17.8302 12.0841 17.7197 12.2808 17.523C12.4775 17.3263 12.588 17.0595 12.588 16.7813Z" />
-                                                            </svg>
-                                                        </span>
-                                                    </a>
-
-                                                </div>
-                                            </div>
-
-                                            @endforeach
-                                        </form>
-                                    </div>
-
-                                    <div class="apply-promo-code">
-                                        <h3>{{__('admin.Apply Promo Code') }}</h3>
-                                    </div>
-
-                                    <div class="apply-promo-code-btn-main">
-                                        <form action="{{ route('admin.pos.apply.cupon') }}" method="get">
-
-                                            <input type="text" class="form-control" name="coupon"
-                                                id="exampleFormControlInput-3" placeholder="QGWRFY98">
-
-                                            <!-- Button trigger modal -->
-                                            <button type="submit" class="promo-code-btn">
-                                                {{__('admin.Apply') }}
-                                            </button>
-                                        </form>
-                                        <!-- Button trigger modal -->
-
-
-                                        <!-- Modal -->
-                                        <div class="modal fade" id="exampleModal"  role="dialog"
-                                            aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="exampleModalLabel0">{{__('admin.Modal title') }}</h5>
-                                                        <button type="button" class="close" data-dismiss="modal"
-                                                            aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        ...
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary"
-                                                            data-dismiss="modal">{{__('admin.Close') }}</button>
-                                                        <button type="button" class="btn btn-primary">{{__('admin.Save') }}
-                                                            {{__('admin.changes') }}</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Modal -->
-                                    </div>
-
-                                    <div class="sub-total">
-                                        <div class="sub-total-item">
-                                            <h6>{{__('admin.Sub total :') }}</h6>
-                                            <h6>{{__('admin.Discount :') }}</h6>
-                                            <h6>{{__('admin.Tax :') }}</h6>
-                                        </div>
-                                        @if($grandTotal == 0)
-                                        <div class="sub-total-inner">
-                                            <h6>{{ $setting->currency_icon }}0</h6>
-                                            <h6>{{ $setting->currency_icon }}0</h6>
-                                            <h6>{{ $setting->currency_icon }}0</h6>
-                                        </div>
-                                        @else
-                                        <div class="sub-total-inner">
-                                            <h6>{{ $setting->currency_icon }}{{ $grandTotal }}</h6>
-                                            <h6>{{ $setting->currency_icon }}{{$discount}}</h6>
-                                            <h6>{{ $setting->currency_icon }}{{$tax}}</h6>
-                                        </div>
-                                        @endif
-
-                                    </div>
-
-                                    <div class="sub-total-btm">
-                                        <div class="sub-total-btm-item">
-                                            <h6>{{__('admin.Sub total :') }}</h6>
-                                        </div>
-                                        @if($grandTotal == 0)
-                                        <div class="sub-total-btm-inner">
-                                            <h6>{{ $setting->currency_icon }}0</h6>
-                                        </div>
-                                        @else
-                                        <div class="sub-total-btm-inner">
-                                            <h6>{{ $setting->currency_icon }}{{$subTotal}}</h6>
-                                        </div>
-
-                                        @endif
-
+                                    <div id="posCartPanel">
+                                        @include('admin.pos.partials.cart_refresh', [
+                                            'setting' => $setting,
+                                            'cart_products' => $cart_products,
+                                            'coupon' => $coupon ?? null,
+                                            'couponValue' => $couponValue ?? '',
+                                        ])
                                     </div>
 
                                     <div class="sub-total-btn">
@@ -929,7 +817,7 @@
                                                             <button type="button" class="no-btn yes-btn"
                                                                 data-dismiss="modal">{{__('admin.No') }}</button>
 
-                                                            <a class="no-btn"
+                                                            <a class="no-btn pos-cart-clear"
                                                                 href="{{ route('admin.pos.cart.clear.product') }}">
                                                                 {{__('admin.Yes') }}
                                                             </a>
@@ -976,31 +864,68 @@
                                                                 <div class="from-item-main">
                                                                     <form action="{{ route('admin.pos.order.submit')}}" method="post">
                                                                         @csrf
-                                                                        <input type="hidden" name="sub_total" value="{{$grandTotal}}">
+                                                                        <input type="hidden" name="sub_total" id="posOrderSubTotal" value="{{ $grandTotal ?? 0 }}">
 
-                                                                        @if($grandTotal == 0)
-                                                                        <input type="hidden" name="cupon" value="0">
-                                                                        <input type="hidden" name="tax" value="0">
-                                                                        <input type="hidden" name="discount" value="0">
+                                                                        @if(($grandTotal ?? 0) == 0)
+                                                                        <input type="hidden" name="cupon" id="posOrderCoupon" value="0">
+                                                                        <input type="hidden" name="tax" id="posOrderTax" value="0">
+                                                                        <input type="hidden" name="discount" id="posOrderDiscount" value="0">
                                                                         @else
-                                                                        <input type="hidden" name="tax"  value="{{$tax}}">
-                                                                        <input type="hidden" name="cupon"  value="{{$couponValue}}">
-                                                                        <input type="hidden" name="discount"  value="{{$discount}}">
+                                                                        <input type="hidden" name="tax" id="posOrderTax" value="{{ $tax ?? 0 }}">
+                                                                        <input type="hidden" name="cupon" id="posOrderCoupon" value="{{ $couponValue ?? '' }}">
+                                                                        <input type="hidden" name="discount" id="posOrderDiscount" value="{{ $discount ?? 0 }}">
                                                                         @endif
 
                                                                         <div class="form-group">
                                                                             <label for="">{{__('admin.Select Customer')}}</label>
-                                                                            <select name="customer_id" id="" class="form-control select2" required>
-                                                                                <option value="" disabled selected>{{ __('admin.Select a Customer') }}</option>
-                                                                                @php
-                                                                                $CustomerCount = count($customers);
-                                                                                @endphp
-                                                                                @foreach ($customers as $key => $customer)
-                                                                                    @if ($key < $CustomerCount - 0)
-                                                                                        <option value="{{$customer->id}}">{{$customer->name}}</option>
-                                                                                    @endif
+                                                                            <select name="customer_id" id="posOrderCustomerSelect" class="form-control select2" required>
+                                                                                <option value="">{{ __('admin.Select a Customer') }}</option>
+                                                                                @foreach ($customers as $customer)
+                                                                                    <option value="{{$customer->id}}" {{ ($selected_customer->id ?? null) == $customer->id ? 'selected' : '' }}>
+                                                                                        {{ $customer->name }}{{ $customer->phone ? ' ('.$customer->phone.')' : '' }}
+                                                                                    </option>
                                                                                 @endforeach
                                                                             </select>
+                                                                        </div>
+
+                                                                        <div id="posCustomerAddressBox" class="pos-address-box mb-3" style="display:none;">
+                                                                            <div id="posAddressCard" class="pos-address-card" style="display:none;">
+                                                                                <div class="pos-address-card__head">
+                                                                                    <span class="pos-address-card__icon"><i class="fas fa-map-marker-alt"></i></span>
+                                                                                    <div>
+                                                                                        <strong id="posAddressCardTitle">{{ __('admin.Delivery Address') }}</strong>
+                                                                                        <div id="posAddressCardMeta" class="pos-address-card__meta"></div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <p id="posAddressCardText" class="pos-address-card__text mb-0"></p>
+                                                                                <small class="text-muted d-block mt-2">{{ __('admin.You can edit address for this order only.') }}</small>
+                                                                            </div>
+                                                                            <div id="posAddressMissing" class="pos-address-card pos-address-card--warn" style="display:none;">
+                                                                                <strong>{{ __('admin.No address found') }}.</strong>
+                                                                                <span class="d-block small mt-1">{{ __('admin.Please enter full address for this order.') }}</span>
+                                                                            </div>
+                                                                            <p class="text-muted small mb-2 mt-2">{{ __('admin.This address is saved only for this order') }}</p>
+                                                                            <div id="posAddressForm">
+                                                                                <div class="form-group mb-2">
+                                                                                    <label>{{ __('admin.Country') }}</label>
+                                                                                    <input type="text" class="form-control" value="Bangladesh" readonly>
+                                                                                </div>
+                                                                                <div class="form-group mb-2">
+                                                                                    <label>{{ __('admin.Address') }} <span class="text-danger">*</span></label>
+                                                                                    <textarea name="address_line" id="posAddressLine" class="form-control" rows="3" placeholder="{{ __('admin.House, road, area, landmark') }}" required></textarea>
+                                                                                </div>
+                                                                                <div class="form-group mb-2">
+                                                                                    <label class="d-block">{{ __('admin.Delivery Area') }} <span class="text-danger">*</span></label>
+                                                                                    <div class="form-check form-check-inline">
+                                                                                        <input class="form-check-input" type="radio" name="delivery_area" id="posAreaInside" value="inside" checked>
+                                                                                        <label class="form-check-label" for="posAreaInside">{{ __('admin.Inside') }}</label>
+                                                                                    </div>
+                                                                                    <div class="form-check form-check-inline">
+                                                                                        <input class="form-check-input" type="radio" name="delivery_area" id="posAreaOutside" value="outside">
+                                                                                        <label class="form-check-label" for="posAreaOutside">{{ __('admin.Outside') }}</label>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                         </div>
 
 
@@ -1100,6 +1025,225 @@
     </section>
 </div>
 <script src="{{ asset('backend/pos/assets/js/custom.js')}}"></script>
+<script>
+    (function ($) {
+        var searchTimer = null;
+        var csrf = '{{ csrf_token() }}';
+        var $search = $('#posCustomerSearch');
+        var $results = $('#posCustomerResults');
+        var $hidden = $('#posCustomerId');
+
+        function setOrderCustomer(id) {
+            var $select = $('#posOrderCustomerSelect');
+            if ($select.length) {
+                $select.val(String(id)).trigger('change');
+            }
+        }
+
+        function posToast(message, type) {
+            if (typeof toastr !== 'undefined') {
+                if (type === 'error') toastr.error(message);
+                else if (type === 'warning') toastr.warning(message);
+                else toastr.success(message);
+            }
+        }
+
+        function syncPosOrderTotals(totals) {
+            if (!totals) return;
+            $('#posOrderSubTotal').val(totals.grandTotal);
+            $('#posOrderTax').val(totals.tax);
+            $('#posOrderDiscount').val(totals.discount);
+            $('#posOrderCoupon').val(totals.couponValue || '0');
+        }
+
+        function refreshPosCart(res) {
+            if (res && res.html) {
+                $('#posCartPanel').html(res.html);
+            }
+            if (res && res.totals) {
+                syncPosOrderTotals(res.totals);
+            }
+            if (res && res.message) {
+                posToast(res.message, res.alert || (res.ok ? 'success' : 'error'));
+            }
+        }
+
+        function posCartRequest(url) {
+            return $.ajax({
+                url: url,
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).done(function (res) {
+                refreshPosCart(res);
+            }).fail(function (xhr) {
+                var res = xhr.responseJSON || {};
+                if (res.message) posToast(res.message, 'error');
+            });
+        }
+
+        $(document).on('click', '.pos-add-product', function (e) {
+            e.preventDefault();
+            posCartRequest($(this).attr('href'));
+        });
+
+        $(document).on('click', '.pos-cart-action', function (e) {
+            e.preventDefault();
+            posCartRequest($(this).attr('href'));
+        });
+
+        $(document).on('click', '.pos-cart-clear', function (e) {
+            e.preventDefault();
+            posCartRequest($(this).attr('href'));
+            $('#exampleModalLong-3').modal('hide');
+        });
+
+        $(document).on('submit', '#posPromoWrap form', function (e) {
+            e.preventDefault();
+            var coupon = $.trim($(this).find('[name=coupon]').val());
+            if (!coupon) {
+                posToast('{{ trans('admin_validation.Coupon Field is required') }}', 'error');
+                return;
+            }
+            $.get('{{ route('admin.pos.apply.cupon') }}', { coupon: coupon }, function (res) {
+                refreshPosCart(res);
+            }, 'json').fail(function (xhr) {
+                var res = xhr.responseJSON || {};
+                if (res.message) posToast(res.message, 'error');
+            });
+        });
+
+        function loadCustomerAddress(customerId) {
+            var $box = $('#posCustomerAddressBox');
+            if (!customerId) {
+                $box.hide();
+                return;
+            }
+            $box.show();
+            $.getJSON('{{ url('admin/pos/customer') }}/' + customerId + '/address', function (res) {
+                $('#posAddressForm').show();
+                $('#posAddressLine').val('');
+                $('#posAreaInside').prop('checked', true);
+                $('#posAddressCard').hide();
+                $('#posAddressMissing').hide();
+
+                if (res.has_address && res.address) {
+                    var areaLabel = (res.address.delivery_area === 'outside')
+                        ? '{{ __('admin.Outside') }}'
+                        : '{{ __('admin.Inside') }}';
+                    var title = res.address.is_default
+                        ? '{{ __('admin.Default address loaded') }}'
+                        : '{{ __('admin.Address available') }}';
+                    var meta = [];
+                    if (res.address.phone) meta.push(res.address.phone);
+                    meta.push('Bangladesh · ' + areaLabel);
+                    $('#posAddressCardTitle').text(title);
+                    $('#posAddressCardMeta').text(meta.join(' · '));
+                    $('#posAddressCardText').text(res.address.address || '');
+                    $('#posAddressCard').show();
+                    $('#posAddressLine').val(res.address.address || '');
+                    if (res.address.delivery_area === 'outside') {
+                        $('#posAreaOutside').prop('checked', true);
+                    } else {
+                        $('#posAreaInside').prop('checked', true);
+                    }
+                } else {
+                    $('#posAddressMissing').show();
+                }
+            });
+        }
+
+        $(document).on('change', '#posOrderCustomerSelect', function () {
+            loadCustomerAddress($(this).val());
+        });
+
+        $('#exampleModal-4').on('shown.bs.modal', function () {
+            loadCustomerAddress($('#posOrderCustomerSelect').val());
+        });
+
+        function pickCustomer(customer) {
+            $hidden.val(customer.id);
+            $search.val(customer.name);
+            $results.hide().empty();
+            setOrderCustomer(customer.id);
+            $.post('{{ route('admin.pos.customer.select') }}', {
+                _token: csrf,
+                customer_id: customer.id
+            });
+        }
+
+        $search.on('input', function () {
+            var q = $.trim(this.value);
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function () {
+                $.getJSON('{{ route('admin.pos.customer.search') }}', { q: q }, function (list) {
+                    if (!list.length) {
+                        $results.html('<div class="item no-result">{{ __('admin.No customers found') }}</div>').show();
+                        return;
+                    }
+                    var html = '';
+                    list.forEach(function (customer) {
+                        var meta = [customer.phone, customer.email].filter(Boolean).join(' · ');
+                        html += '<div class="item" data-id="' + customer.id + '"><strong>' + (customer.name || '') + '</strong>' +
+                            (meta ? '<small>' + meta + '</small>' : '') + '</div>';
+                    });
+                    $results.html(html).show();
+                    $results.find('.item[data-id]').on('click', function () {
+                        var id = Number($(this).data('id'));
+                        var found = list.find(function (item) { return Number(item.id) === id; });
+                        if (found) {
+                            pickCustomer(found);
+                        }
+                    });
+                });
+            }, 250);
+        });
+
+        $search.on('focus', function () {
+            if ($.trim(this.value).length) {
+                $(this).trigger('input');
+            }
+        });
+
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.pos-customer-search-wrap').length) {
+                $results.hide();
+            }
+        });
+
+        $(document).on('change', '.pos-qty-input', function () {
+            var $input = $(this);
+            var cartId = $input.data('cart-id');
+            var qty = parseInt($input.val(), 10);
+            var original = parseInt($input.attr('value'), 10) || 1;
+            if (!qty || qty < 1) {
+                $input.val(original);
+                return;
+            }
+            if (qty === original) {
+                return;
+            }
+            var payload = { _token: csrf, _method: 'PUT', qty_update: {} };
+            payload.qty_update[cartId] = qty;
+            $.ajax({
+                url: '{{ route('admin.pos.update.cart.order') }}',
+                method: 'POST',
+                data: payload,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).done(function (res) {
+                refreshPosCart(res);
+                $input.attr('value', qty);
+            }).fail(function (xhr) {
+                var message = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : '{{ trans('admin_validation.This Product Are Out of Stock') }}';
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(message);
+                } else {
+                    alert(message);
+                }
+                $input.val(original);
+            });
+        });
+    })(jQuery);
+</script>
 <script>
     const searchForm = document.getElementById('searchForm');
     const searchButton = document.getElementById('searchButton');

@@ -255,7 +255,7 @@
                         $cost.val(cost > 0 ? cost.toFixed(2) : '');
                     } else {
                         pcCost = (cost > 0 && pcs > 0) ? (cost / pcs) : 0;
-                        $pcCost.val(pcCost > 0 ? pcCost.toFixed(2) : '');
+                        $pcCost.val(pcCost > 0 ? pcCost.toFixed(4) : '');
                     }
                 }
 
@@ -310,7 +310,7 @@
                     '<td><input type="number" step="0.01" name="'+costName+'" class="form-control item-cost" min="0" value="" placeholder="0"></td>' +
                     '<td>' +
                     '<div class="pc-cost-wrap"'+(packVisible?'':' style="display:none"')+'>' +
-                    '<input type="number" step="0.01" class="form-control item-pc-cost" min="0" value="" placeholder="0">' +
+                    '<input type="number" step="0.0001" class="form-control item-pc-cost" min="0" value="" placeholder="0">' +
                     '</div>' +
                     '<span class="pc-cost-dash text-muted"'+(packVisible?' style="display:none"':'')+'>-</span>' +
                     '</td>' +

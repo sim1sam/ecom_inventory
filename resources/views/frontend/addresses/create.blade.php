@@ -65,49 +65,22 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label for="country" class="form-label">Country <span class="text-danger">*</span></label>
-                                <select class="form-select @error('country') is-invalid @enderror" id="country" name="country" required>
-                                    <option value="">Select Country</option>
-                                    @foreach($countries as $country)
-                                        <option value="{{ $country->id }}" {{ old('country') == $country->id ? 'selected' : '' }}>
-                                            {{ $country->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('country')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="state" class="form-label">State <span class="text-danger">*</span></label>
-                                <select class="form-select @error('state') is-invalid @enderror" id="state" name="state" required disabled>
-                                    <option value="">Select State</option>
-                                </select>
-                                @error('state')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <label for="city" class="form-label">City <span class="text-danger">*</span></label>
-                                <select class="form-select @error('city') is-invalid @enderror" id="city" name="city" required disabled>
-                                    <option value="">Select City</option>
-                                </select>
-                                @error('city')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="zip_code" class="form-label">Zip Code</label>
-                                <input type="text" class="form-control @error('zip_code') is-invalid @enderror" 
-                                       id="zip_code" name="zip_code" value="{{ old('zip_code') }}" placeholder="Enter zip code">
-                                @error('zip_code')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <label class="form-label">Country</label>
+                                <input type="text" class="form-control" value="Bangladesh" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label d-block">Delivery Area <span class="text-danger">*</span></label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="delivery_area" id="areaInside" value="inside" {{ old('delivery_area', 'inside') == 'inside' ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="areaInside">Inside</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="delivery_area" id="areaOutside" value="outside" {{ old('delivery_area') == 'outside' ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="areaOutside">Outside</label>
+                                </div>
+                                @error('delivery_area')
+                                    <div class="text-danger small">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
@@ -115,7 +88,7 @@
                         <div class="mb-3">
                             <label for="address" class="form-label">Full Address <span class="text-danger">*</span></label>
                             <textarea class="form-control @error('address') is-invalid @enderror" 
-                                      id="address" name="address" rows="3" required>{{ old('address') }}</textarea>
+                                      id="address" name="address" rows="3" placeholder="House, road, area, landmark" required>{{ old('address') }}</textarea>
                             @error('address')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -134,67 +107,3 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-$(document).ready(function() {
-    // Handle country change
-    $('#country').change(function() {
-        var countryId = $(this).val();
-        var stateSelect = $('#state');
-        var citySelect = $('#city');
-        
-        // Reset state and city
-        stateSelect.html('<option value="">Select State</option>').prop('disabled', true);
-        citySelect.html('<option value="">Select City</option>').prop('disabled', true);
-        
-        if (countryId) {
-            $.ajax({
-                url: '{{ url("addresses") }}/' + countryId + '/states',
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data.length > 0) {
-                        $.each(data, function(key, value) {
-                            stateSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                        });
-                        stateSelect.prop('disabled', false);
-                    }
-                },
-                error: function() {
-                    alert('Error loading states. Please try again.');
-                }
-            });
-        }
-    });
-    
-    // Handle state change
-    $('#state').change(function() {
-        var stateId = $(this).val();
-        var citySelect = $('#city');
-        
-        // Reset city
-        citySelect.html('<option value="">Select City</option>').prop('disabled', true);
-        
-        if (stateId) {
-            $.ajax({
-                url: '{{ url("addresses") }}/' + stateId + '/cities',
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data.length > 0) {
-                        $.each(data, function(key, value) {
-                            citySelect.append('<option value="' + value.id + '">' + value.name + '</option>');
-                        });
-                        citySelect.prop('disabled', false);
-                    }
-                },
-                error: function() {
-                    alert('Error loading cities. Please try again.');
-                }
-            });
-        }
-    });
-});
-</script>
-@endpush
